@@ -1,0 +1,14 @@
+[
+    {
+        "order_reference": "ORD12345",
+        "tracking_number": "TRACK123",
+        "carrier": "CourierX",
+        "shipping_date": "2025-02-14"
+    },
+    {
+        "order_reference": "ORD12346",
+        "tracking_number": "TRACK124",
+        "carrier": "CourierY",
+        "shipping_date": "2025-02-15"
+    }
+]
