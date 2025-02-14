@@ -8,7 +8,7 @@ from datetime import datetime
 SFTP_HOST = "ws.italagro.bindcommerce.biz"
 SFTP_PORT = 22
 SFTP_USER = "wsitalagro"
-SFTP_PASS = "LA_TUA_PASSWORD"  
+SFTP_PASS = ""  
 
 
 LOCAL_JSON_DIR = "json_orders/"  

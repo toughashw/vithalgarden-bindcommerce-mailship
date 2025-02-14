@@ -4,7 +4,7 @@
 $sftp_host = "ws.italagro.bindcommerce.biz";
 $sftp_port = 22;
 $sftp_user = "wsitalagro";
-$sftp_pass = "LA_TUA_PASSWORD"; // Usa variabili d'ambiente per sicurezza
+$sftp_pass = ""; 
 
 // Percorsi locali
 $local_json_dir = "json_orders/"; // Cartella locale JSON
