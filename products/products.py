@@ -10,7 +10,7 @@ password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'  # Sostituisci con la tua password
 
 # Percorsi dei file
 remote_file_path = '/home/wsitalagro/webapps/ws-italagro/export_product.csv'  # File remoto da leggere
-output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/tracking_product.csv'  # File CSV da salvare
+output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/orders_product.csv'  # File CSV da salvare
 
 # Connessione al server SFTP
 try:
@@ -52,3 +52,4 @@ finally:
     # Chiudi la connessione SFTP
     if transport:
         transport.close()
+
