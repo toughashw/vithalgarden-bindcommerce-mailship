@@ -3,14 +3,14 @@ import pandas as pd
 from io import StringIO
 
 # Dettagli del server SFTP
-hostname = 'ws.italagro.bindcommerce.biz'  # Host del server SFTP
-port = 22  # Porta SFTP (di solito 22)
-username = 'wsitalagro'  # Nome utente SFTP
-password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'  # Sostituisci con la tua password SFTP
+hostname = 'ws.italagro.bindcommerce.biz'  
+port = 22 
+username = 'wsitalagro'  
+password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'  
 
 # Percorsi dei file
-remote_file_path = '/home/wsitalagro/webapps/ws-italagro/export_product.csv'  # File remoto da leggere
-output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/tracking_product.csv'  # File CSV da salvare
+remote_file_path = '/home/wsitalagro/webapps/ws-italagro/orders/export_orders.csv'  # File remoto da leggere
+output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_expedition.csv'  # File CSV da salvare
 
 # Connessione al server SFTP
 try:
@@ -27,8 +27,8 @@ try:
     # Crea un DataFrame Pandas dal contenuto CSV
     df = pd.read_csv(StringIO(file_content))
     
-    # Seleziona solo le colonne richieste (aggiungendo 'Weight')
-    colonne_da_selezionare = ['Primary EAN', 'Internal SKU', 'Weight']
+    # Seleziona solo le colonne richieste 
+    colonne_da_selezionare = ['Order Number', 'Tracking Number', 'Carrier', 'OrderDate']
     df_selezionato = df[colonne_da_selezionare]
     
     # Crea un buffer di StringIO per salvare il CSV
