@@ -16,11 +16,13 @@ output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_expedit
 try:
     transport = paramiko.Transport((hostname, port))
     transport.connect(username=username, password=password)
-    
+    print("Connessione al server SFTP in corso....")
+
     # Crea il client SFTP
     sftp = paramiko.SFTPClient.from_transport(transport)
     
     # Leggi il contenuto del file remoto
+    print("Leggo il CSV degli Ordini...")
     with sftp.open(remote_file_path, 'r') as remote_file:
         file_content = remote_file.read().decode('utf-8')
     
@@ -28,6 +30,7 @@ try:
     df = pd.read_csv(StringIO(file_content))
     
     # Seleziona solo le colonne richieste 
+    print("Genero il nuovo CSV....")    
     colonne_da_selezionare = ['Order Number', 'Tracking Number', 'Carrier', 'OrderDate']
     df_selezionato = df[colonne_da_selezionare]
     
