@@ -9,7 +9,7 @@ username = 'wsitalagro'
 password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'  
 
 # Percorsi dei file
-remote_file_path = '/home/wsitalagro/webapps/ws-italagro/orders/export_orders.csv'  # File remoto da leggere
+remote_file_path = '/home/wsitalagro/webapps/ws-italagro/products/scaricoprodotti.csv'  # File remoto da leggere
 output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/export_product.csv'  # File CSV da salvare
 
 # Connessione al server SFTP
@@ -31,7 +31,7 @@ try:
     
     # Seleziona solo le colonne richieste 
     print("Genero il nuovo CSV....")    
-    colonne_da_selezionare = ['Primary EAN', 'Internal SKU', 'In Stock']
+    colonne_da_selezionare = ['Primary EAN', 'Internal SKU', 'Name', 'Measurement Weight', 'Measurement Length', 'Measurement Width', 'Packaging', 'Lot', 'Country', 'In Stock', 'Available', 'Reserved','Incoming']
     df_selezionato = df[colonne_da_selezionare]
     
     # Crea un buffer di StringIO per salvare il CSV
