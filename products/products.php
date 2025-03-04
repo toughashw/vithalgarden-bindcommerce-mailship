@@ -7,8 +7,8 @@ $username = 'wsitalagro';
 $password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP';  
 
 // Percorsi dei file
-$remote_file_path = '/home/wsitalagro/webapps/ws-italagro/export_orders.csv';  // File remoto da leggere
-$output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/export_product.csv';  // File CSV da salvare
+$remote_file_path = '/home/wsitalagro/webapps/ws-italagro/orders/orders_vg.csv';  // File remoto da leggere
+$output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/export_products_vg.csv';  // File CSV da salvare
 
 // Creazione della connessione SFTP
 $connection = ssh2_connect($hostname, $port);
@@ -39,7 +39,7 @@ $lines = explode("\n", $file_content);
 $header = str_getcsv(array_shift($lines));  // Estrai l'header
 
 // Trova gli indici delle colonne richieste (aggiungendo 'Weight')
-$columns_to_select = ['Primary EAN', 'Internal SKU', 'In Stock'];
+$columns_to_select = ['SKU total'];
 $selected_columns_indices = [];
 foreach ($header as $index => $column_name) {
     if (in_array($column_name, $columns_to_select)) {

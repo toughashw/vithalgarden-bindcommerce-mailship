@@ -7,8 +7,8 @@ $username = 'wsitalagro';
 $password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP';  
 
 // Percorsi dei file
-$remote_file_path = '/home/wsitalagro/webapps/ws-italagro/orders/export_orders.csv';  // File remoto da leggere
-$output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_expedition.csv';  // File CSV da salvare
+$remote_file_path = '/home/wsitalagro/webapps/ws-italagro/orders/orders_vg.csv';  // File remoto da leggere
+$output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_expedition_vg.csv';  // File CSV da salvare
 
 // Creazione della connessione SFTP
 $connection = ssh2_connect($hostname, $port);
@@ -39,7 +39,7 @@ $lines = explode("\n", $file_content);
 $header = str_getcsv(array_shift($lines));  // Estrai l'header
 
 // Trova gli indici delle colonne richieste 
-$columns_to_select = ['Order Number', 'Tracking Number', 'Carrier', 'OrderDate'];
+$columns_to_select = ['Order Number', 'Tracking Number', 'Carrier', 'Status'];
 $selected_columns_indices = [];
 foreach ($header as $index => $column_name) {
     if (in_array($column_name, $columns_to_select)) {
