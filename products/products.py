@@ -10,7 +10,7 @@ password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'
 
 # Percorsi dei file
 remote_file_path = '/home/wsitalagro/webapps/ws-italagro/products/products_vg.csv'  # File remoto da leggere
-output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/done/export_products_vg.csv'  # File CSV da salvare
+output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/export_products_vg.csv'  # File CSV da salvare
 
 # Connessione al server SFTP
 try:

@@ -8,7 +8,7 @@ $password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP';
 
 // Percorsi dei file
 $remote_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/tracking_vg.csv';  // File remoto da leggere
-$output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/done/export_tracking_vg.csv';  // File CSV da salvare
+$output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_vg.csv';  // File CSV da salvare
 
 // Creazione della connessione SFTP
 $connection = ssh2_connect($hostname, $port);
