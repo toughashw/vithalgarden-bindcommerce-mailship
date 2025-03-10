@@ -3,6 +3,7 @@ import pandas as pd
 from io import StringIO
 import schedule
 import time
+from datetime import datetime  # Importa datetime per il timestamp
 
 # Funzione per eseguire il salvataggio del CSV
 def salva_csv():
@@ -14,7 +15,10 @@ def salva_csv():
 
     # Percorsi dei file
     remote_file_path = '/home/wsitalagro/webapps/ws-italagro/products/products_vg.csv'  # File remoto da leggere
-    output_file_path = '/home/wsitalagro/webapps/ws-italagro/products/export_products_vg.csv'  # File CSV da salvare
+    
+    # Aggiungi il timestamp al nome del file di output
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  # Formato del timestamp (giorno-mese-anno_ora:minuti:secondi)
+    output_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_vg_{timestamp}.csv'  # File CSV da salvare con il timestamp
 
     # Connessione al server SFTP
     try:
@@ -70,5 +74,6 @@ schedule.every(5).minutes.do(salva_csv)
 while True:
     schedule.run_pending()
     time.sleep(60)  # Attendi un minuto prima di controllare di nuovo
+
 
 

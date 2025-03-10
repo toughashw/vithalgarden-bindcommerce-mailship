@@ -10,7 +10,10 @@ function salva_csv() {
 
     // Percorsi dei file
     $remote_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/tracking_vg.csv';  // File remoto da leggere
-    $output_file_path = '/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_vg.csv';  // File CSV da salvare
+
+    // Aggiungi il timestamp al nome del file di output
+    $timestamp = date('d-m-Y_H:i:s');  // Formato del timestamp (giorno-mese-anno_ora:minuti:secondi)
+    $output_file_path = "/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_vg_$timestamp.csv";  // File CSV da salvare con il timestamp
 
     // Creazione della connessione SFTP
     $connection = ssh2_connect($hostname, $port);
@@ -87,3 +90,5 @@ while (true) {
 }
 
 ?>
+
+
