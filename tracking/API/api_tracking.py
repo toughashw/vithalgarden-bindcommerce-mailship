@@ -73,7 +73,7 @@ def get_expedition_list(token):
 
 # Funzione per generare un unico CSV con i dati delle spedizioni
 def generate_csv(expedition_list):
-    with open('expedition_with_quantity.csv', mode='w', newline='', encoding='utf-8') as outfile:
+    with open('export_expedition.csv', mode='w', newline='', encoding='utf-8') as outfile:
         fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Order Date']
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
 

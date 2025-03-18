@@ -61,6 +61,11 @@ def get_product_list(token):
     if response.status_code == 200:
         # Ottieni la risposta JSON
         product_data = response.json()
+        
+         # Salva la risposta JSON in un file
+        with open('product_list.json', 'w') as f:
+            json.dump(product_data, f, indent=4)
+        print("Contenuto salvato in 'product_list.json'")
 
         # Restituisce la lista dei prodotti
         if isinstance(product_data, dict) and 'results' in product_data:
@@ -86,6 +91,11 @@ def get_product_stock(token):
         # Ottieni la risposta JSON
         stock_data = response.json()
 
+         # Salva la risposta JSON in un file
+        with open('stock_list.json', 'w') as f:
+            json.dump(stock_data, f, indent=4)
+        print("Contenuto salvato in 'stock_list.json'")
+
         # Restituisce un dizionario con id prodotto e quantità
         if isinstance(stock_data, dict) and 'results' in stock_data:
             product_stock = {}
@@ -105,7 +115,7 @@ def get_product_stock(token):
 
 # Funzione per generare un unico CSV con i dati dei prodotti e le quantità
 def generate_csv(product_list, product_stock):
-    with open('product_with_quantity.csv', mode='w', newline='', encoding='utf-8') as outfile:
+    with open('export_products.csv', mode='w', newline='', encoding='utf-8') as outfile:
         fieldnames = ['Internal SKU', 'Primary EAN', 'Name', 'Quantity']
         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
 
@@ -128,7 +138,7 @@ def generate_csv(product_list, product_stock):
             }
             writer.writerow(new_row)
 
-    print(f"CSV generato con successo: 'product_with_quantity.csv'")
+    print(f"CSV generato con successo: 'export_product.csv'")
 
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
