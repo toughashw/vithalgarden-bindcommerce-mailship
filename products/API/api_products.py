@@ -1,7 +1,11 @@
+import paramiko
 import requests
 import time
 import json
 import csv
+from io import StringIO
+from datetime import datetime
+import schedule
 
 # Dati di login
 login_url = "https://app.mailship.eu/api/login/user"
@@ -12,6 +16,12 @@ stock_url = "https://app.mailship.eu/api/product-stock/list"  # URL per ottenere
 email = "alessandrocarucci.ac@gmail.com"  # L'email da usare per il login
 password = "Alex260981"  # La password
 
+# Dettagli del server SFTP
+hostname = 'ws.italagro.bindcommerce.biz'
+port = 22
+sftp_username = 'wsitalagro'
+sftp_password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'
+
 # Funzione per effettuare il login e ottenere il token
 def login():
     headers = {'Content-Type': 'application/json'}
@@ -20,7 +30,7 @@ def login():
         'password': password
     }
 
-    print("Payload per login:", payload)
+    print("Effettuo il Login...")
     response = requests.post(login_url, json=payload, headers=headers)
     
     if response.status_code == 200:
@@ -62,11 +72,6 @@ def get_product_list(token):
         # Ottieni la risposta JSON
         product_data = response.json()
         
-         # Salva la risposta JSON in un file
-        with open('product_list.json', 'w') as f:
-            json.dump(product_data, f, indent=4)
-        print("Contenuto salvato in 'product_list.json'")
-
         # Restituisce la lista dei prodotti
         if isinstance(product_data, dict) and 'results' in product_data:
             product_list = product_data['results']
@@ -91,11 +96,6 @@ def get_product_stock(token):
         # Ottieni la risposta JSON
         stock_data = response.json()
 
-         # Salva la risposta JSON in un file
-        with open('stock_list.json', 'w') as f:
-            json.dump(stock_data, f, indent=4)
-        print("Contenuto salvato in 'stock_list.json'")
-
         # Restituisce un dizionario con id prodotto e quantità
         if isinstance(stock_data, dict) and 'results' in stock_data:
             product_stock = {}
@@ -113,32 +113,56 @@ def get_product_stock(token):
         print("Errore durante la richiesta a /product-stock/list:", response.status_code, response.text)
         return {}
 
-# Funzione per generare un unico CSV con i dati dei prodotti e le quantità
-def generate_csv(product_list, product_stock):
-    with open('export_products.csv', mode='w', newline='', encoding='utf-8') as outfile:
-        fieldnames = ['Internal SKU', 'Primary EAN', 'Name', 'Quantity']
-        writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+def generate_csv_and_upload_to_sftp(product_list, product_stock):
+    # Aggiungi il timestamp al nome del file di output
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  # Formato del timestamp (giorno-mese-anno_ora:minuti:secondi)
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  # File CSV da salvare con il timestamp
+    
+    # Crea un buffer di memoria (StringIO) per generare il CSV in memoria
+    csv_buffer = StringIO()
+    fieldnames = ['Internal SKU', 'Primary EAN', 'Name', 'Quantity']
+    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
-        # Scrive l'intestazione
-        writer.writeheader()
+    # Scrive l'intestazione
+    writer.writeheader()
 
-        # Scrive i dati per ogni prodotto
-        for product in product_list:
-            product_id = product.get('id')  # Usa 'internalSku' per identificare il prodotto
+    # Scrive i dati per ogni prodotto
+    for product in product_list:
+        product_id = product.get('id')  # Usa 'internalSku' per identificare il prodotto
 
-            # Aggiungi la quantità al prodotto, se disponibile
-            quantity = product_stock.get(product_id, 0)  # Se la quantità non è trovata, metti 0
+        # Aggiungi la quantità al prodotto, se disponibile
+        quantity = product_stock.get(product_id, 0)  # Se la quantità non è trovata, metti 0
 
-            # Prepara i dati per la nuova struttura
-            new_row = {
-                'Internal SKU': product.get('internalSku', ''),
-                'Primary EAN': product.get('productSku', ''),
-                'Name': product.get('name', ''),
-                'Quantity': quantity  # Inseriamo la quantità nel CSV
-            }
-            writer.writerow(new_row)
+        # Prepara i dati per la nuova struttura
+        new_row = {
+            'Internal SKU': product.get('internalSku', ''),
+            'Primary EAN': product.get('productSku', ''),
+            'Name': product.get('name', ''),
+            'Quantity': quantity  # Inseriamo la quantità nel CSV
+        }
+        writer.writerow(new_row)
 
-    print(f"CSV generato con successo: 'export_product.csv'")
+    # Dopo aver scritto il CSV nel buffer, procedi a caricarlo su SFTP
+    csv_buffer.seek(0)  # Torna all'inizio del buffer per la lettura
+
+    try:
+        # Connessione al server SFTP
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=sftp_username, password=sftp_password)
+        
+        # Crea il client SFTP
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        
+        # Scrive il CSV sul server SFTP
+        with sftp.open(remote_file_path, 'w') as remote_file:
+            remote_file.write(csv_buffer.getvalue())
+
+        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
+    except Exception as e:
+        print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
+    finally:
+        # Chiudi la connessione SFTP
+        transport.close()
 
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
@@ -146,7 +170,6 @@ def authenticate():
     
     if token:
         print("Login effettuato con successo!")
-        print(f"Token ricevuto: {token}")  # Stampa il token dopo il login
         
         # Imposta il tempo di scadenza del token
         expiry_time = time.time() + expires_in
@@ -165,17 +188,19 @@ def authenticate():
                     break
             else:
                 # Chiama la funzione per ottenere i prodotti se il token è ancora valido
-                print("Token valido, faccio la richiesta per i prodotti...")
                 product_list = get_product_list(token)
 
                 # Ottieni le quantità di stock per ogni prodotto
-                print("Recuperando la quantità di stock per ogni prodotto...")
                 product_stock = get_product_stock(token)
 
-                # Genera il CSV combinato con i dati dei prodotti e le quantità
-                print("Generando il CSV con i dati dei prodotti e le quantità...")
-                generate_csv(product_list, product_stock)
+                # Genera il CSV e caricalo su SFTP
+                generate_csv_and_upload_to_sftp(product_list, product_stock)
                 break  # Esci dal ciclo dopo aver generato il CSV
 
-# Esegui lo script di autenticazione
-authenticate()
+# Schedula il salvataggio ogni 5 minuti
+schedule.every(1).minutes.do(authenticate)
+
+# Loop per eseguire la schedulazione
+while True:
+    schedule.run_pending()
+    time.sleep(30)  # Attendi un minuto prima di controllare di nuovo

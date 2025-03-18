@@ -1,7 +1,11 @@
+import paramiko
 import requests
 import time
 import json
 import csv
+from io import StringIO
+from datetime import datetime
+import schedule
 
 # Dati di login
 login_url = "https://app.mailship.eu/api/login/user"
@@ -11,6 +15,12 @@ expedition_list_url = "https://app.mailship.eu/api/expedition/list"  # Nuovo URL
 email = "alessandrocarucci.ac@gmail.com"  # L'email da usare per il login
 password = "Alex260981"  # La password
 
+# Dettagli del server SFTP
+hostname = 'ws.italagro.bindcommerce.biz'
+port = 22
+sftp_username = 'wsitalagro'
+sftp_password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'
+
 # Funzione per effettuare il login e ottenere il token
 def login():
     headers = {'Content-Type': 'application/json'}
@@ -18,8 +28,7 @@ def login():
         'login': email,  # Usa l'email come valore per il campo 'login'
         'password': password
     }
-
-    print("Payload per login:", payload)
+    print("Effettuo il Login...")
     response = requests.post(login_url, json=payload, headers=headers)
     
     if response.status_code == 200:
@@ -60,6 +69,7 @@ def get_expedition_list(token):
     if response.status_code == 200:
         # Ottieni la risposta JSON
         expedition_data = response.json()
+        print("Scarico la lista spedizioni in formato JSON")
 
         # Salva la risposta JSON in un file
         with open('expedition_list.json', 'w') as f:
@@ -71,28 +81,57 @@ def get_expedition_list(token):
         print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
         return []
 
-# Funzione per generare un unico CSV con i dati delle spedizioni
-def generate_csv(expedition_list):
-    with open('export_expedition.csv', mode='w', newline='', encoding='utf-8') as outfile:
-        fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Order Date']
-        writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+# Funzione per generare il CSV e caricarlo su SFTP
+def generate_csv_and_upload_to_sftp(expedition_list):
+    # Aggiungi il timestamp al nome del file di output
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  # Formato del timestamp (giorno-mese-anno_ora:minuti:secondi)
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  # File CSV da salvare con il timestamp
 
-        # Scrive l'intestazione
-        writer.writeheader()
+    # Crea un buffer di memoria (StringIO) per generare il CSV in memoria
+    csv_buffer = StringIO()
+    fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Order Date']
+    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
-        # Scrive i dati per ogni prodotto
-        for expedition in expedition_list:
-            # Prepara i dati per la nuova struttura
-            new_row = {
-                'Order Number': expedition.get('orderNumber', ''),
-                'Tracking Number': expedition.get('trackingNumber', ''),
-                'Carrier': expedition.get('carrier', ''),
-                'Order Date': expedition.get('eshopOrderDate', ''),
+    # Scrive l'intestazione
+    writer.writeheader()
 
-            }
-            writer.writerow(new_row)
+    # Scrive i dati per ogni spedizione
+    for expedition in expedition_list:
+        # Prepara i dati per la nuova struttura
+        new_row = {
+            'Order Number': expedition.get('orderNumber', ''),
+            'Tracking Number': expedition.get('trackingNumber', ''),
+            'Carrier': expedition.get('carrier', ''),
+            'Order Date': expedition.get('eshopOrderDate', ''),
+        }
+        writer.writerow(new_row)
 
-    print(f"CSV generato con successo: 'expedition_with_quantity.csv'")
+    # Dopo aver scritto il CSV nel buffer, procedi a caricarlo su SFTP
+    csv_buffer.seek(0)  # Torna all'inizio del buffer per la lettura
+
+    try:
+        # Connessione al server SFTP
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=sftp_username, password=sftp_password)
+        
+        # Crea il client SFTP
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        
+        # Scrive il CSV sul server SFTP
+        with sftp.open(remote_file_path, 'w') as remote_file:
+            remote_file.write(csv_buffer.getvalue())
+
+        # Aggiungi il timestamp al nome del file di output
+        timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  # Formato del timestamp (giorno-mese-anno_ora:minuti:secondi)
+        remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_api_{timestamp}.csv'  # File CSV da salvare con il timestamp
+
+        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
+
+    except Exception as e:
+        print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
+    finally:
+        # Chiudi la connessione SFTP
+        transport.close()
 
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
@@ -123,9 +162,15 @@ def authenticate():
                 expedition_list = get_expedition_list(token)
 
                 # Genera il CSV con i dati delle spedizioni
-                print("Generando il CSV con i dati delle spedizioni...")
-                generate_csv(expedition_list)
+                print("Genero il CSV con i dati delle spedizioni...")
+                generate_csv_and_upload_to_sftp(expedition_list)
                 break  # Esci dal ciclo dopo aver generato il CSV
 
-# Esegui lo script di autenticazione
-authenticate()
+# Schedula il salvataggio ogni 5 minuti
+schedule.every(1).minutes.do(authenticate)
+
+# Loop per eseguire la schedulazione
+while True:
+    schedule.run_pending()
+    time.sleep(30)  # Attendi un minuto prima di controllare di nuovo
+
