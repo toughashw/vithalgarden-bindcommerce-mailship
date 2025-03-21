@@ -117,8 +117,9 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
     remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_api_{timestamp}.csv'
 
+    print("Genero il CSV aggiornato...")
     csv_buffer = StringIO()
-    fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Order Date']
+    fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Status']
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
     writer.writeheader()
@@ -134,7 +135,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
             'Order Number': expedition.get('orderNumber', ''),
             'Tracking Number': expedition.get('trackingNumber', ''),
             'Carrier': carrier_name,
-            'Order Date': expedition.get('eshopOrderDate', ''),
+            'Status': expedition.get('status', ''),
         }
         writer.writerow(new_row)
 
@@ -152,7 +153,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
         with sftp.open(remote_file_path, 'w') as remote_file:
             remote_file.write(csv_buffer.getvalue())
 
-        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
+        print(f"CSV salvato con successo con successo su SFTP: {remote_file_path}")
         print("Attendo 5 minuti prima di un nuovo aggiornamento....")
        
     except Exception as e:

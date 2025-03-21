@@ -117,6 +117,7 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
     remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  
     
+    print("Genero il CSV aggiornato...")
     csv_buffer = StringIO()
     fieldnames = ['Internal SKU', 'Primary EAN', 'Name', 'Quantity']
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
