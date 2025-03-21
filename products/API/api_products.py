@@ -49,7 +49,9 @@ def login():
         print("Errore durante il login:", response.status_code, response.text)
         return None, None
 
-print("Login effettuato con successo!")
+token = login()
+print(f"Token ricevuto con successo: {token}")
+print("Login effettuato con successo!\n")
 
 # Refresh Token Function
 def refresh_token(refresh_token):
@@ -81,7 +83,7 @@ def get_product_list(token):
         # Salva la risposta JSON in un file
         with open('product_list.json', 'w') as f:
             json.dump(product_data, f, indent=4)
-        print("Contenuto salvato in 'product_list.json'")
+        print("Contenuto salvato in 'product_list.json'\n")
 
         return product_data.get('results', [])
     else:
@@ -100,12 +102,12 @@ def get_product_stock(token):
     if response.status_code == 200:
         # Ottieni la risposta JSON
         stock_data = response.json()
-        print("Scarico la lista disponibilità in formato JSON")
+        print("Scarico la lista disponibilità prodotti in formato JSON")
 
         # Salva la risposta JSON in un file
         with open('stock_list.json', 'w') as f:
             json.dump(stock_data, f, indent=4)
-        print("Contenuto salvato in 'stock_list.json'")
+        print("Contenuto salvato in 'stock_list.json'\n")
 
         return stock_data.get('results', [])
     else:
@@ -127,7 +129,7 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
     for product in product_list:
         product_quantity = ""  
         for stock in product_stock:
-            if product['id'] == stock.get('id'):
+            if product['id'] == stock.get('product'):
                 product_quantity = stock.get('quantity', '') 
                 break  
 
@@ -154,7 +156,7 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
             remote_file.write(csv_buffer.getvalue())
 
         print(f"CSV caricato con successo su SFTP: {remote_file_path}")
-        print("Attendo 5 minuti prima di un nuovo aggiornamento....")
+        print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
 
     except Exception as e:
         print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
@@ -187,12 +189,12 @@ def authenticate():
 
                 if product_list and product_stock:
                     generate_csv_and_upload_to_sftp(product_list, product_stock)
-                time.sleep(60)  
-                break  
+                break 
 
-schedule.every(1).minutes.do(authenticate)
+# Schedulazione salvataggio CSV ogni 5 minuti
+schedule.every(5).minutes.do(authenticate)
 
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(30)  
+    time.sleep(10)  

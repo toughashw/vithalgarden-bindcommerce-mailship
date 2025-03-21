@@ -45,11 +45,12 @@ def login():
             expires_in = 3600  # durata del token (1 ora)
 
         return token, expires_in
-    else:
         print("Errore durante il login:", response.status_code, response.text)
         return None, None
 
-print("Login effettuato con successo!")
+token = login()
+print(f"Token ricevuto con successo: {token}")
+print("Login effettuato con successo!\n")
 
 # Refresh Token
 def refresh_token(refresh_token):
@@ -81,7 +82,7 @@ def get_expedition_list(token):
         # Salva la risposta JSON in un file
         with open('expedition_list.json', 'w') as f:
             json.dump(expedition_data, f, indent=4)
-        print("Contenuto salvato in 'expedition_list.json'")
+        print("Contenuto salvato in 'expedition_list.json'\n")
 
         return expedition_data.get('results', [])
     else:
@@ -105,7 +106,7 @@ def get_carrier_list(token):
         # Salva la risposta JSON in un file
         with open('carrier_list.json', 'w') as f:
             json.dump(carrier_data, f, indent=4)
-        print("Contenuto salvato in 'carrier_list.json'")
+        print("Contenuto salvato in 'carrier_list.json'\n")
 
         return carrier_data.get('results', [])
     else:
@@ -154,7 +155,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
             remote_file.write(csv_buffer.getvalue())
 
         print(f"CSV salvato con successo con successo su SFTP: {remote_file_path}")
-        print("Attendo 5 minuti prima di un nuovo aggiornamento....")
+        print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
        
     except Exception as e:
         print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
@@ -186,16 +187,15 @@ def authenticate():
                 carrier_list = get_carrier_list(token)
 
                 if expedition_list and carrier_list:
-                    generate_csv_and_upload_to_sftp(expedition_list, carrier_list)
-                time.sleep(60)  
+                    generate_csv_and_upload_to_sftp(expedition_list, carrier_list) 
                 break   
 
 # Schedulazione salvataggio CSV ogni 5 minuti
-schedule.every(1).minute.do(authenticate)
+schedule.every(5).minutes.do(authenticate)
 
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(30)  
+    time.sleep(10)  
 
 
