@@ -11,12 +11,13 @@ import schedule
 login_url = "https://app.mailship.eu/api/login/user"
 refresh_url = "https://app.mailship.eu/api/refresh-token"
 
-# API Call - Expedition
+# API Call - Expedition and Carrier
 expedition_list_url = "https://app.mailship.eu/api/expedition/list"
+carrier_list_url = "https://app.mailship.eu/api/carrier/list"
 
 # Login Credentials
-email = "alessandrocarucci.ac@gmail.com"  
-password = "Alex260981"  
+email = "alessandrocarucci.ac@gmail.com"
+password = "Alex260981"
 
 # SFTP
 hostname = 'ws.italagro.bindcommerce.biz'
@@ -25,27 +26,30 @@ sftp_username = 'wsitalagro'
 sftp_password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'
 
 # Login & Token Function
+print("Effettuo il login ed ottengo un token valido....")
 def login():
     headers = {'Content-Type': 'application/json'}
     payload = {
         'login': email,  
         'password': password
     }
-    print("Effettuo login ed ottengo un token valido...")
+
     response = requests.post(login_url, json=payload, headers=headers)
-    
+
     if response.status_code == 200:
         token_data = response.json()
         token = token_data.get('token')
         expires_in = token_data.get('expires_in')
 
         if expires_in is None:
-            expires_in = 3600  # # durata del token (1 ora)
+            expires_in = 3600  # durata del token (1 ora)
 
         return token, expires_in
     else:
         print("Errore durante il login:", response.status_code, response.text)
         return None, None
+
+print("Login effettuato con successo!")
 
 # Refresh Token
 def refresh_token(refresh_token):
@@ -84,10 +88,34 @@ def get_expedition_list(token):
         print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
         return []
 
+# Funzione per fare una richiesta POST a /carrier/list e ottenere la lista dei corrieri
+def get_carrier_list(token):
+    headers = {
+        'Authorization': f'Bearer {token}',  
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.post(carrier_list_url, headers=headers)
+
+    if response.status_code == 200:
+        # Ottieni la risposta JSON
+        carrier_data = response.json()
+        print("Scarico la lista corrieri in formato JSON")
+
+        # Salva la risposta JSON in un file
+        with open('carrier_list.json', 'w') as f:
+            json.dump(carrier_data, f, indent=4)
+        print("Contenuto salvato in 'carrier_list.json'")
+
+        return carrier_data.get('results', [])
+    else:
+        print("Errore durante la richiesta a /carrier/list:", response.status_code, response.text)
+        return []
+
 # Funzione per generare il CSV e caricarlo su SFTP
-def generate_csv_and_upload_to_sftp(expedition_list):
+def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
-    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_api_{timestamp}.csv'  # File CSV in SFTP da salvare con il timestamp
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/tracking/export_tracking_api_{timestamp}.csv'
 
     csv_buffer = StringIO()
     fieldnames = ['Order Number', 'Tracking Number', 'Carrier', 'Order Date']
@@ -96,15 +124,21 @@ def generate_csv_and_upload_to_sftp(expedition_list):
     writer.writeheader()
 
     for expedition in expedition_list:
+        carrier_name = ""
+        for carrier in carrier_list:
+            if carrier['id'] == expedition.get('carrier'):  
+                carrier_name = carrier.get('name', '')
+                break
+
         new_row = {
             'Order Number': expedition.get('orderNumber', ''),
             'Tracking Number': expedition.get('trackingNumber', ''),
-            'Carrier': expedition.get('carrier', ''),
+            'Carrier': carrier_name,
             'Order Date': expedition.get('eshopOrderDate', ''),
         }
         writer.writerow(new_row)
 
-    csv_buffer.seek(0)  
+    csv_buffer.seek(0)
 
     try:
         # Connessione al server SFTP
@@ -119,10 +153,8 @@ def generate_csv_and_upload_to_sftp(expedition_list):
             remote_file.write(csv_buffer.getvalue())
 
         print(f"CSV caricato con successo su SFTP: {remote_file_path}")
-
         print("Attendo 5 minuti prima di un nuovo aggiornamento....")
-        schedule.every(1).minutes.do(generate_csv_and_upload_to_sftp)
-
+       
     except Exception as e:
         print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
     finally:
@@ -130,14 +162,10 @@ def generate_csv_and_upload_to_sftp(expedition_list):
         transport.close()
 
 # Funzione principale per gestire l'autenticazione e il refresh del token
-
 def authenticate():
     token, expires_in = login()
-    print("Login effettuato con successo!")
-    print(f"Token ricevuto con successo: {token}") 
-
+    
     if token:
-             
         expiry_time = time.time() + expires_in
         
         while True:
@@ -154,12 +182,19 @@ def authenticate():
             else:
                 
                 expedition_list = get_expedition_list(token)
+                carrier_list = get_carrier_list(token)
 
-                generate_csv_and_upload_to_sftp(expedition_list)
-                break  
+                if expedition_list and carrier_list:
+                    generate_csv_and_upload_to_sftp(expedition_list, carrier_list)
+                time.sleep(60)  
+                break   
+
+# Schedulazione salvataggio CSV ogni 5 minuti
+schedule.every(1).minute.do(authenticate)
 
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(30)  # Attendi un minuto prima di controllare di nuovo
+    time.sleep(30)  
+
 

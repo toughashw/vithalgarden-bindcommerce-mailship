@@ -26,18 +26,19 @@ sftp_username = 'wsitalagro'
 sftp_password = 'Q0W80q8oeuKWztztdTd2QL5JphA7lWgP'
 
 # Login & Token Function
+print("Effettuo il login ed ottengo un token valido....")
 def login():
     headers = {'Content-Type': 'application/json'}
     payload = {
         'login': email,  
         'password': password
     }
-    print("Effettuo il login ed ottengo un token valido....")
+
     response = requests.post(login_url, json=payload, headers=headers)
-    
+
     if response.status_code == 200:
         token_data = response.json()
-        token = token_data.get('token')
+        token = token_data.get('token')         
         expires_in = token_data.get('expires_in')
 
         if expires_in is None:
@@ -47,6 +48,8 @@ def login():
     else:
         print("Errore durante il login:", response.status_code, response.text)
         return None, None
+
+print("Login effettuato con successo!")
 
 # Refresh Token Function
 def refresh_token(refresh_token):
@@ -80,18 +83,12 @@ def get_product_list(token):
             json.dump(product_data, f, indent=4)
         print("Contenuto salvato in 'product_list.json'")
 
-        # Restituisce la lista dei prodotti
-        if isinstance(product_data, dict) and 'results' in product_data:
-            product_list = product_data['results']
-            return product_list
-        else:
-            print("La risposta non contiene una lista valida di prodotti.")
-            return []
+        return product_data.get('results', [])
     else:
         print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
         return []
 
-# Funzione per ottenere la quantità di stock per i prodotti
+# Funzione per fare una richiesta POST a /stock/list e ottenere ed ottenere quantità prodotti
 def get_product_stock(token):
     headers = {
         'Authorization': f'Bearer {token}',
@@ -110,25 +107,15 @@ def get_product_stock(token):
             json.dump(stock_data, f, indent=4)
         print("Contenuto salvato in 'stock_list.json'")
 
-        # Restituisce un dizionario con id prodotto e quantità
-        if isinstance(stock_data, dict) and 'results' in stock_data:
-            product_stock = {}
-            for item in stock_data['results']:
-                product_id = item.get('id')  
-                quantity = item.get('quantity') 
-                if product_id:
-                    product_stock[product_id] = quantity
-            return product_stock
-        else:
-            print("La risposta non contiene una lista valida di stock.")
-            return {}
+        return stock_data.get('results', [])
     else:
-        print("Errore durante la richiesta a /product-stock/list:", response.status_code, response.text)
-        return {}
+            print("Errore durante la richiesta a /stock/list:", response.status_code, response.text)
+            return []
 
+# Funzione per generare il CSV e caricarlo su SFTP
 def generate_csv_and_upload_to_sftp(product_list, product_stock):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
-    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  # File CSV da salvare in SFTP con il timestamp
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  
     
     csv_buffer = StringIO()
     fieldnames = ['Internal SKU', 'Primary EAN', 'Name', 'Quantity']
@@ -136,22 +123,22 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
 
     writer.writeheader()
 
-    # Scrive i dati per ogni prodotto
     for product in product_list:
-        product_id = product.get('id')  
+        product_quantity = ""  
+        for stock in product_stock:
+            if product['id'] == stock.get('id'):
+                product_quantity = stock.get('quantity', '') 
+                break  
 
-        quantity = product_stock.get(product_id, 0)  
-
-        # Prepara i dati per la nuova struttura
         new_row = {
             'Internal SKU': product.get('internalSku', ''),
             'Primary EAN': product.get('productSku', ''),
             'Name': product.get('name', ''),
-            'Quantity': quantity  
-        }
+            'Quantity': product_quantity
+            }
         writer.writerow(new_row)
 
-    csv_buffer.seek(0)  
+    csv_buffer.seek(0)
 
     try:
         # Connessione al server SFTP
@@ -166,9 +153,7 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
             remote_file.write(csv_buffer.getvalue())
 
         print(f"CSV caricato con successo su SFTP: {remote_file_path}")
-
         print("Attendo 5 minuti prima di un nuovo aggiornamento....")
-        schedule.every(1).minutes.do(generate_csv_and_upload_to_sftp)
 
     except Exception as e:
         print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
@@ -179,14 +164,10 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
     token, expires_in = login()
-    print("Login effettuato con successo!")
-    print(f"Token ricevuto con successo: {token}")
-
+    
     if token:  
-        # Imposta il tempo di scadenza del token
         expiry_time = time.time() + expires_in
         
-        # Usare il token per fare richieste finché non scade
         while True:
             current_time = time.time()
             if current_time >= expiry_time:
@@ -199,15 +180,18 @@ def authenticate():
                     print("Errore nel rinnovo del token.")
                     break
             else:
-                
-                product_list = get_product_list(token)
 
+                product_list = get_product_list(token)
                 product_stock = get_product_stock(token)
 
-                generate_csv_and_upload_to_sftp(product_list, product_stock)
+                if product_list and product_stock:
+                    generate_csv_and_upload_to_sftp(product_list, product_stock)
+                time.sleep(60)  
                 break  
+
+schedule.every(1).minutes.do(authenticate)
 
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(30)  # Attendi un minuto prima di controllare di nuovo
+    time.sleep(30)  
