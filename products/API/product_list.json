@@ -13697,15 +13697,17 @@
             "name": "I - DIAVOLINA ACCENDIFUOCO 80 cubi",
             "description": null,
             "images": [],
-            "intImages": [],
+            "intImages": [
+                "a91af37f-9d5b-419f-ac14-d126a48f8fe8"
+            ],
             "weight": null,
             "height": null,
             "width": null,
             "length": null,
-            "intWeight": null,
-            "intHeight": null,
-            "intWidth": null,
-            "intLength": null,
+            "intWeight": 660,
+            "intHeight": 53,
+            "intWidth": 130,
+            "intLength": 201,
             "referenceNumbers": [
                 "15302"
             ],
@@ -13730,7 +13732,7 @@
             "localisation": [],
             "services": [],
             "codes": [],
-            "changedAt": "2025-01-27T18:14:19+01:00"
+            "changedAt": "2025-03-20T10:50:43+01:00"
         },
         {
             "id": "a3c3b9c2-8fa0-49c2-82af-61ce467b1fbb",
@@ -29637,22 +29639,24 @@
             "eshops": [
                 "0fd92368-cf43-431b-a44e-ba773ed246fa"
             ],
-            "productSku": "8 002840 820673",
+            "productSku": "8002840820673",
             "internalSku": "82067",
             "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
             "productGroup": null,
             "name": "Respira Candela Fiori di Cotone",
             "description": null,
             "images": [],
-            "intImages": [],
+            "intImages": [
+                "425bc427-6d26-47a5-a59d-2f9b2953d029"
+            ],
             "weight": null,
             "height": null,
             "width": null,
             "length": null,
-            "intWeight": null,
-            "intHeight": null,
-            "intWidth": null,
-            "intLength": null,
+            "intWeight": 340,
+            "intHeight": 95,
+            "intWidth": 61,
+            "intLength": 70,
             "referenceNumbers": [
                 "82067"
             ],
@@ -29677,7 +29681,7 @@
             "localisation": [],
             "services": [],
             "codes": [],
-            "changedAt": "2025-01-27T18:14:43+01:00"
+            "changedAt": "2025-03-20T13:09:15+01:00"
         },
         {
             "id": "dacc765c-db3a-4ec0-971b-6f154c6c1505",
@@ -29733,22 +29737,24 @@
             "eshops": [
                 "0fd92368-cf43-431b-a44e-ba773ed246fa"
             ],
-            "productSku": "8 002840 820772",
+            "productSku": "8002840820772",
             "internalSku": "82077",
             "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
             "productGroup": null,
             "name": "Respira Candela Giara Frutti di Bosco",
             "description": null,
             "images": [],
-            "intImages": [],
+            "intImages": [
+                "c94a0a5e-460c-4fa0-a327-48a5fb02457e"
+            ],
             "weight": null,
             "height": null,
             "width": null,
             "length": null,
-            "intWeight": null,
-            "intHeight": null,
-            "intWidth": null,
-            "intLength": null,
+            "intWeight": 1000,
+            "intHeight": 105,
+            "intWidth": 82,
+            "intLength": 167,
             "referenceNumbers": [
                 "82077"
             ],
@@ -29773,29 +29779,31 @@
             "localisation": [],
             "services": [],
             "codes": [],
-            "changedAt": "2025-01-27T18:15:33+01:00"
+            "changedAt": "2025-03-20T12:57:20+01:00"
         },
         {
             "id": "1f346c19-c3ad-4ee4-85d6-8e3b2f7b4023",
             "eshops": [
                 "0fd92368-cf43-431b-a44e-ba773ed246fa"
             ],
-            "productSku": "8 002840 820789",
+            "productSku": "8002840820789",
             "internalSku": "82078",
             "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
             "productGroup": null,
             "name": "Respira Candela Giara Mandarino & Zenzero",
             "description": null,
             "images": [],
-            "intImages": [],
+            "intImages": [
+                "fc122a91-af55-41de-be09-10630dc4225a"
+            ],
             "weight": null,
             "height": null,
             "width": null,
             "length": null,
-            "intWeight": null,
-            "intHeight": null,
-            "intWidth": null,
-            "intLength": null,
+            "intWeight": 980,
+            "intHeight": 103,
+            "intWidth": 84,
+            "intLength": 162,
             "referenceNumbers": [
                 "82078"
             ],
@@ -29820,29 +29828,31 @@
             "localisation": [],
             "services": [],
             "codes": [],
-            "changedAt": "2025-01-27T18:13:50+01:00"
+            "changedAt": "2025-03-20T13:02:58+01:00"
         },
         {
             "id": "2a0cb1a9-4773-4b8f-b4a1-5e6010a7957d",
             "eshops": [
                 "0fd92368-cf43-431b-a44e-ba773ed246fa"
             ],
-            "productSku": "8 002840 820796",
+            "productSku": "8002840820796",
             "internalSku": "82079",
             "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
             "productGroup": null,
             "name": "Respira Candela Giara Mela & Cannella",
             "description": null,
             "images": [],
-            "intImages": [],
+            "intImages": [
+                "14b64a4a-fa99-4476-a7de-a21546a11bc5"
+            ],
             "weight": null,
             "height": null,
             "width": null,
             "length": null,
-            "intWeight": null,
-            "intHeight": null,
-            "intWidth": null,
-            "intLength": null,
+            "intWeight": 960,
+            "intHeight": 103,
+            "intWidth": 85,
+            "intLength": 161,
             "referenceNumbers": [
                 "82079"
             ],
@@ -29867,7 +29877,7 @@
             "localisation": [],
             "services": [],
             "codes": [],
-            "changedAt": "2025-01-27T18:14:11+01:00"
+            "changedAt": "2025-03-20T13:01:27+01:00"
         },
         {
             "id": "541963b0-206e-4c52-97ce-964057729701",
