@@ -127,24 +127,24 @@ def generate_csv_and_upload_to_sftp(expedition_list,moviment_list):
     for expedition in expedition_list:
         for moviment in moviment_list:
             if expedition['id'] == moviment.get('expedition'):
-                order_number = expedition.get('orderNumber', ''),
-                carrier = expedition.get('carrier', ''),
-                status = expedition.get('status', ''),
-                tracking_number = expedition.get('trackingNumber', ''),
-                delivery_firstname = expedition.get('deliveryFirstName', ''),
-                delivery_lastname = expedition.get('deliveryLastName', ''),
-                delivery_street = expedition.get('deliveryStreet', ''),
-                delivery_house_nr = expedition.get('deliveryHouseNr', ''),
-                delivery_zip = expedition.get('deliveryZip', ''),
-                delivery_city = expedition.get('deliveryCity', ''),
-                delivery_country = expedition.get('deliveryCountry', ''),
-                delivery_state = expedition.get('deliveryState', ''),
-                delivery_email = expedition.get('deliveryEmail', ''),
-                delivery_phone = expedition.get('deliveryPhone', ''),
-                product = moviment.get('product', ''),
-                piece_total = moviment.get('quantity', ''),
-                value = expedition.get('value', ''),
-                currency = expedition.get('currency', ''),
+                order_number = expedition.get('orderNumber', '')
+                carrier = expedition.get('carrier', '')
+                status = expedition.get('status', '')
+                tracking_number = expedition.get('trackingNumber', '')
+                delivery_firstname = expedition.get('deliveryFirstName', '')
+                delivery_lastname = expedition.get('deliveryLastName', '')
+                delivery_street = expedition.get('deliveryStreet', '')
+                delivery_house_nr = expedition.get('deliveryHouseNr', '')
+                delivery_zip = expedition.get('deliveryZip', '')
+                delivery_city = expedition.get('deliveryCity', '')
+                delivery_country = expedition.get('deliveryCountry', '')
+                delivery_state = expedition.get('deliveryState', '')
+                delivery_email = expedition.get('deliveryEmail', '')
+                delivery_phone = expedition.get('deliveryPhone', '')
+                product = moviment.get('product', '')
+                piece_total = moviment.get('quantity', '')
+                value = expedition.get('value', '')
+                currency = expedition.get('currency', '')
                 break  
 
         new_row = {
