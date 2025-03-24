@@ -89,7 +89,7 @@ def get_expedition_list(token):
         print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
         return []
 
-# Funzione per fare una richiesta POST a /moviment/list e ottenere la lista dei corrieri
+# Funzione per fare una richiesta POST a /moviment/list e ottenere la lista spedizioni assegnate ai corrieri
 def get_moviment_list(token):
     headers = {
         'Authorization': f'Bearer {token}',  
@@ -112,6 +112,85 @@ def get_moviment_list(token):
     else:
         print("Errore durante la richiesta a /moviment/list:", response.status_code, response.text)
         return []
+# Funzione per generare il CSV e caricarlo su SFTP
+def generate_csv_and_upload_to_sftp(expedition_list,moviment_list):
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/orders/export_orders_api_{timestamp}.csv'  
+    
+    print("Genero il CSV aggiornato...")
+    csv_buffer = StringIO()
+    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastrname', 'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery State', 'Delivery Email', 'Delivery Phone', 'Product','Piece Total', 'Value', 'Currency' ]
+    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
+
+    writer.writeheader()
+
+    for expedition in expedition_list:
+        for moviment in moviment_list:
+            if expedition['id'] == moviment.get('expedition'):
+                order_number = expedition.get('orderNumber', ''),
+                carrier = expedition.get('carrier', ''),
+                status = expedition.get('status', ''),
+                tracking_number = expedition.get('trackingNumber', ''),
+                delivery_firstname = expedition.get('deliveryFirstName', ''),
+                delivery_lastname = expedition.get('deliveryLastName', ''),
+                delivery_street = expedition.get('deliveryStreet', ''),
+                delivery_house_nr = expedition.get('deliveryHouseNr', ''),
+                delivery_zip = expedition.get('deliveryZip', ''),
+                delivery_city = expedition.get('deliveryCity', ''),
+                delivery_country = expedition.get('deliveryCountry', ''),
+                delivery_state = expedition.get('deliveryState', ''),
+                delivery_email = expedition.get('deliveryEmail', ''),
+                delivery_phone = expedition.get('deliveryPhone', ''),
+                product = moviment.get('product', ''),
+                piece_total = moviment.get('quantity', ''),
+                value = expedition.get('value', ''),
+                currency = expedition.get('currency', ''),
+                break  
+
+        new_row = {
+            'Order Number': order_number,
+            'Carrier': carrier,
+            'Status': status,
+            'Tracking Number': tracking_number, 
+            'Delivery Firstname': delivery_firstname, 
+            'Delivery Lastrname': delivery_lastname, 
+            'Delivery Street': delivery_street, 
+            'Delivery House nr': delivery_house_nr,
+            'Delivery Zip': delivery_zip, 
+            'Delivery City': delivery_city, 
+            'Delivery Country': delivery_country, 
+            'Delivery State': delivery_state,
+            'Delivery Email': delivery_email, 
+            'Delivery Phone': delivery_phone, 
+            'Product': product, 
+            'Piece Total': piece_total, 
+            'Value': value,
+            'Currency': currency,
+            }
+        writer.writerow(new_row)
+
+    csv_buffer.seek(0)
+
+    try:
+        # Connessione al server SFTP
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=sftp_username, password=sftp_password)
+        
+        # Crea il client SFTP
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        
+        # Scrive il CSV sul server SFTP
+        with sftp.open(remote_file_path, 'w') as remote_file:
+            remote_file.write(csv_buffer.getvalue())
+
+        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
+        print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
+
+    except Exception as e:
+        print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
+    finally:
+        # Chiudi la connessione SFTP
+        transport.close()
 
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
@@ -131,11 +210,14 @@ def authenticate():
                 else:
                     print("Errore nel rinnovo del token.")
                     break
+            else:
 
-                
                 expedition_list = get_expedition_list(token)
                 moviment_list = get_moviment_list(token)
-                break
+
+                if expedition_list and moviment_list:
+                    generate_csv_and_upload_to_sftp(expedition_list, moviment_list)
+                break 
 
 # Schedulazione salvataggio CSV ogni 5 minuti
 schedule.every(1).minutes.do(authenticate)
