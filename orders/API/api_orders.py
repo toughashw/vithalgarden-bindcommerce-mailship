@@ -11,9 +11,11 @@ import schedule
 login_url = "https://app.mailship.eu/api/login/user"
 refresh_url = "https://app.mailship.eu/api/refresh-token"
 
-# API Call - Expedition and Carrier
+# API Call - Expedition & Carrier | Moviment & Product
 expedition_list_url = "https://app.mailship.eu/api/expedition/list"
+carrier_list_url = "https://app.mailship.eu/api/carrier/list"
 moviment_list_url = "https://app.mailship.eu/api/stock-movement/list"
+product_list_url = "https://app.mailship.eu/api/product/list"  
 
 # Login Credentials
 email = "alessandrocarucci.ac@gmail.com"
@@ -89,6 +91,30 @@ def get_expedition_list(token):
         print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
         return []
 
+# Funzione per fare una richiesta POST a /carrier/list e ottenere la lista dei corrieri
+def get_carrier_list(token):
+    headers = {
+        'Authorization': f'Bearer {token}',  
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.post(carrier_list_url, headers=headers)
+
+    if response.status_code == 200:
+        # Ottieni la risposta JSON
+        carrier_data = response.json()
+        print("Scarico la lista corrieri in formato JSON")
+
+        # Salva la risposta JSON in un file
+        with open('carrier_list.json', 'w') as f:
+            json.dump(carrier_data, f, indent=4)
+        print("Contenuto salvato in 'carrier_list.json'\n")
+
+        return carrier_data.get('results', [])
+    else:
+        print("Errore durante la richiesta a /carrier/list:", response.status_code, response.text)
+        return []
+
 # Funzione per fare una richiesta POST a /moviment/list e ottenere la lista spedizioni assegnate ai corrieri
 def get_moviment_list(token):
     headers = {
@@ -112,23 +138,45 @@ def get_moviment_list(token):
     else:
         print("Errore durante la richiesta a /moviment/list:", response.status_code, response.text)
         return []
+
+# Funzione per fare una richiesta POST a /product/list e ottenere i prodotti
+def get_product_list(token):
+    headers = {
+        'Authorization': f'Bearer {token}',  
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.post(product_list_url, headers=headers)
+
+    if response.status_code == 200:
+        # Ottieni la risposta JSON
+        product_data = response.json()
+        print("Scarico la lista prodotti in formato JSON")
+
+        # Salva la risposta JSON in un file
+        with open('product_list.json', 'w') as f:
+            json.dump(product_data, f, indent=4)
+        print("Contenuto salvato in 'product_list.json'\n")
+
+        return product_data.get('results', [])
+    else:
+        print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
+        return []
+
 # Funzione per generare il CSV e caricarlo su SFTP
-def generate_csv_and_upload_to_sftp(expedition_list,moviment_list):
+def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list, product_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
     remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/orders/export_orders_api_{timestamp}.csv'  
     
     print("Genero il CSV aggiornato...")
     csv_buffer = StringIO()
-    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastrname', 'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery State', 'Delivery Email', 'Delivery Phone', 'Product','Piece Total', 'Value', 'Currency' ]
+    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastrname', 'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery State', 'Delivery Email', 'Delivery Phone', 'Product Name','Piece Total', 'Value', 'Currency' ]
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
     writer.writeheader()
 
     for expedition in expedition_list:
-        for moviment in moviment_list:
-            if expedition['id'] == moviment.get('expedition'):
                 order_number = expedition.get('orderNumber', '')
-                carrier = expedition.get('carrier', '')
                 status = expedition.get('status', '')
                 tracking_number = expedition.get('trackingNumber', '')
                 delivery_firstname = expedition.get('deliveryFirstName', '')
@@ -141,15 +189,13 @@ def generate_csv_and_upload_to_sftp(expedition_list,moviment_list):
                 delivery_state = expedition.get('deliveryState', '')
                 delivery_email = expedition.get('deliveryEmail', '')
                 delivery_phone = expedition.get('deliveryPhone', '')
-                product = moviment.get('product', '')
-                piece_total = moviment.get('quantity', '')
                 value = expedition.get('value', '')
                 currency = expedition.get('currency', '')
-                break  
+                
 
         new_row = {
             'Order Number': order_number,
-            'Carrier': carrier,
+            'Carrier': carrier_name,
             'Status': status,
             'Tracking Number': tracking_number, 
             'Delivery Firstname': delivery_firstname, 
@@ -162,7 +208,7 @@ def generate_csv_and_upload_to_sftp(expedition_list,moviment_list):
             'Delivery State': delivery_state,
             'Delivery Email': delivery_email, 
             'Delivery Phone': delivery_phone, 
-            'Product': product, 
+            'Product Name': product_name, 
             'Piece Total': piece_total, 
             'Value': value,
             'Currency': currency,
@@ -213,10 +259,12 @@ def authenticate():
             else:
 
                 expedition_list = get_expedition_list(token)
+                carrier_list = get_carrier_list(token)
                 moviment_list = get_moviment_list(token)
+                product_list = get_product_list(token)
 
-                if expedition_list and moviment_list:
-                    generate_csv_and_upload_to_sftp(expedition_list, moviment_list)
+                if expedition_list and carrier_list and moviment_list and product_list:
+                    generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list, product_list)
                 break 
 
 # Schedulazione salvataggio CSV ogni 5 minuti
