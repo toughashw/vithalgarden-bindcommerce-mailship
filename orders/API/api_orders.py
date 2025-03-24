@@ -12,7 +12,7 @@ login_url = "https://app.mailship.eu/api/login/user"
 refresh_url = "https://app.mailship.eu/api/refresh-token"
 
 # API Call - Reservations
-reservations_list_url = "https://app.mailship.eu/api/reservation/list"  
+reservation_list_url = "https://app.mailship.eu/api/reservation/list"  
 
 # Login Credentials
 email = "alessandrocarucci.ac@gmail.com"
@@ -66,7 +66,7 @@ def refresh_token(refresh_token):
         return None, None
 
 # Funzione per fare una richiesta POST a /reservation/list e ottenere i prodotti
-def get_product_list(token):
+def get_reservation_list(token):
     headers = {
         'Authorization': f'Bearer {token}',  
         'Content-Type': 'application/json'
@@ -76,15 +76,15 @@ def get_product_list(token):
 
     if response.status_code == 200:
         # Ottieni la risposta JSON
-        product_data = response.json()
+        reservation_data = response.json()
         print("Scarico la lista prodotti in formato JSON")
 
         # Salva la risposta JSON in un file
         with open('reservation_list.json', 'w') as f:
-            json.dump(product_data, f, indent=4)
+            json.dump(reservation_data, f, indent=4)
         print("Contenuto salvato in 'reservation_list.json'\n")
 
-        return product_data.get('results', [])
+        return reservation_data.get('results', [])
     else:
         print("Errore durante la richiesta a /reservation/list:", response.status_code, response.text)
         return []
