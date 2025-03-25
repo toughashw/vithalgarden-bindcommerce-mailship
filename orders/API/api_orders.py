@@ -170,49 +170,62 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
     
     print("Genero il CSV aggiornato...")
     csv_buffer = StringIO()
-    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastrname', 'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery State', 'Delivery Email', 'Delivery Phone', 'Product Name','Piece Total', 'Value', 'Currency' ]
+    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastname', 
+                  'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery Email', 'Delivery Phone', 'Product Name', 'Piece Total', 'Value', 'Currency']
+    
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
     writer.writeheader()
 
-    for expedition in expedition_list:
-                order_number = expedition.get('orderNumber', '')
-                status = expedition.get('status', '')
-                tracking_number = expedition.get('trackingNumber', '')
-                delivery_firstname = expedition.get('deliveryFirstName', '')
-                delivery_lastname = expedition.get('deliveryLastName', '')
-                delivery_street = expedition.get('deliveryStreet', '')
-                delivery_house_nr = expedition.get('deliveryHouseNr', '')
-                delivery_zip = expedition.get('deliveryZip', '')
-                delivery_city = expedition.get('deliveryCity', '')
-                delivery_country = expedition.get('deliveryCountry', '')
-                delivery_state = expedition.get('deliveryState', '')
-                delivery_email = expedition.get('deliveryEmail', '')
-                delivery_phone = expedition.get('deliveryPhone', '')
-                value = expedition.get('value', '')
-                currency = expedition.get('currency', '')
-                
+ # Filtra solo le spedizioni con stato 'delivered'
+    delivered_expeditions = [expedition for expedition in expedition_list if expedition.get('status') == 'delivered']
 
+# Cicla sulle spedizioni "delivered"
+    for expedition in delivered_expeditions:
+         # Trova il movimento corrispondente alla spedizione
+
+        for moviment in moviment_list:
+            if moviment.get('product') == expedition.get('id'):  
+                piece_total = moviment.get('quantity', 0)
+                break
+
+        # Trova il nome del corriere associato alla spedizione
+        carrier_name = ""
+        for carrier in carrier_list:
+            if carrier.get('id') == expedition.get('carrier'):  
+                carrier_name = carrier.get('name', '')
+                break  # Esci dal ciclo non appena trovi il corriere
+
+        # Trova il nome del prodotto associato al movimento
+        product_name = ""  # Inizializzazione a stringa vuota
+        for product in product_list:
+            for moviment in moviment_list:
+                if moviment.get('product') == expedition.get('id'):  
+                    product_name = product.get('name', '')
+                break
+            break    
+
+        # Scrivi una riga nel CSV
         new_row = {
-            'Order Number': order_number,
+            'Order Number': expedition.get('orderNumber', ''),
             'Carrier': carrier_name,
-            'Status': status,
-            'Tracking Number': tracking_number, 
-            'Delivery Firstname': delivery_firstname, 
-            'Delivery Lastrname': delivery_lastname, 
-            'Delivery Street': delivery_street, 
-            'Delivery House nr': delivery_house_nr,
-            'Delivery Zip': delivery_zip, 
-            'Delivery City': delivery_city, 
-            'Delivery Country': delivery_country, 
-            'Delivery State': delivery_state,
-            'Delivery Email': delivery_email, 
-            'Delivery Phone': delivery_phone, 
-            'Product Name': product_name, 
-            'Piece Total': piece_total, 
-            'Value': value,
-            'Currency': currency,
-            }
+            'Status': expedition.get('status', ''),
+            'Tracking Number': expedition.get('trackingNumber', ''),
+            'Delivery Firstname': expedition.get('deliveryFirstName', ''),
+            'Delivery Lastname': expedition.get('deliveryLastName', ''),
+            'Delivery Street': expedition.get('deliveryStreet', ''),
+            'Delivery House nr': expedition.get('deliveryHouseNr', ''),
+            'Delivery Zip': expedition.get('deliveryZip', ''),
+            'Delivery City': expedition.get('deliveryCity', ''),
+            'Delivery Country': expedition.get('deliveryCountry', ''),
+            'Delivery Email': expedition.get('deliveryEmail', ''),
+            'Delivery Phone': expedition.get('deliveryPhone', ''),
+            'Product Name': product_name,
+            'Piece Total': piece_total,
+            'Value': expedition.get('value', ''),
+            'Currency': expedition.get('currency', ''),
+        }
+        
         writer.writerow(new_row)
 
     csv_buffer.seek(0)
@@ -274,6 +287,10 @@ schedule.every(1).minutes.do(authenticate)
 while True:
     schedule.run_pending()
     time.sleep(10)  
+
+
+
+
 
 
 
