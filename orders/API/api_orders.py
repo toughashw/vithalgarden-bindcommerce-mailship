@@ -182,27 +182,21 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
 
 # Cicla sulle spedizioni "delivered"
     for expedition in delivered_expeditions:
-         # Trova il movimento corrispondente alla spedizione
-
+        piece_total = 0
         for moviment in moviment_list:
-            if moviment.get('product') == expedition.get('id'):  
-                piece_total = moviment.get('quantity', 0)
-                break
+            piece_total = moviment.get('quantity', 0)
+
+            product_name = ""
+            for product in product_list:
+                if moviment.get('expedition') == expedition.get('id'): 
+                    product_name = product.get('name', '')
 
         # Trova il nome del corriere associato alla spedizione
-        carrier_name = ""
-        for carrier in carrier_list:
-            if carrier.get('id') == expedition.get('carrier'):  
-                carrier_name = carrier.get('name', '')
-                break  # Esci dal ciclo non appena trovi il corriere
-
-        # Trova il nome del prodotto associato al movimento
-        product_name = ""  # Inizializzazione a stringa vuota
-        for product in product_list:
-            for moviment in moviment_list:
-                if moviment.get('product') == expedition.get('id'):  
-                    product_name = product.get('name', '')
-                break
+                carrier_name = ""
+                for carrier in carrier_list:
+                    if carrier.get('id') == expedition.get('carrier'):  
+                     carrier_name = carrier.get('name', '')
+                    break  # Esci dal ciclo non appena trovi il corriere
             break    
 
         # Scrivi una riga nel CSV
@@ -287,6 +281,13 @@ schedule.every(1).minutes.do(authenticate)
 while True:
     schedule.run_pending()
     time.sleep(10)  
+
+
+
+
+
+
+
 
 
 
