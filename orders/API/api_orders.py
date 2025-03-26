@@ -170,8 +170,8 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
     
     print("Genero il CSV aggiornato...")
     csv_buffer = StringIO()
-    fieldnames = ['Order Number', 'Carrier', 'Status', 'Tracking Number', 'Delivery Firstname', 'Delivery Lastname', 
-                  'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery Email', 'Delivery Phone', 'Product Name', 'Piece Total', 'Value', 'Currency']
+    fieldnames = ['Order Number', 'Order Date', 'Carrier', 'Status', 'Tracking Number', 'Tracking Url', 'Delivery Date', 'Delivery Firstname', 'Delivery Lastname', 
+                  'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery Email', 'Delivery Phone', 'Packages Count', 'SKU Total', 'Piece Total', 'Value', 'Currency']
     
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
 
@@ -182,29 +182,24 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
 
 # Cicla sulle spedizioni "delivered"
     for expedition in delivered_expeditions:
-        piece_total = 0
-        for moviment in moviment_list:
-            piece_total = moviment.get('quantity', 0)
-
-            product_name = ""
-            for product in product_list:
-                if moviment.get('expedition') == expedition.get('id'): 
-                    product_name = product.get('name', '')
+         # Trova il movimento corrispondente alla spedizione
 
         # Trova il nome del corriere associato alla spedizione
-                carrier_name = ""
-                for carrier in carrier_list:
-                    if carrier.get('id') == expedition.get('carrier'):  
-                     carrier_name = carrier.get('name', '')
-                    break  # Esci dal ciclo non appena trovi il corriere
-            break    
+        carrier_name = ""
+        for carrier in carrier_list:
+            if carrier.get('id') == expedition.get('carrier'):  
+                carrier_name = carrier.get('name', '')
+                break  # Esci dal ciclo non appena trovi il corriere   
 
         # Scrivi una riga nel CSV
         new_row = {
             'Order Number': expedition.get('orderNumber', ''),
+            'Order Date': expedition.get('eshopOrderDate', ''),
             'Carrier': carrier_name,
             'Status': expedition.get('status', ''),
             'Tracking Number': expedition.get('trackingNumber', ''),
+            'Tracking Url': expedition.get('trackingUrl', ''),
+            'Delivery Date': expedition.get('deliveredAt', ''),
             'Delivery Firstname': expedition.get('deliveryFirstName', ''),
             'Delivery Lastname': expedition.get('deliveryLastName', ''),
             'Delivery Street': expedition.get('deliveryStreet', ''),
@@ -214,8 +209,9 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
             'Delivery Country': expedition.get('deliveryCountry', ''),
             'Delivery Email': expedition.get('deliveryEmail', ''),
             'Delivery Phone': expedition.get('deliveryPhone', ''),
-            'Product Name': product_name,
-            'Piece Total': piece_total,
+            'Packages Count': expedition.get('packagesCount', ''),
+            'SKU Total': expedition.get('countOfSku', ''),
+            'Piece Total': expedition.get('sumOfQuantity', ''),
             'Value': expedition.get('value', ''),
             'Currency': expedition.get('currency', ''),
         }
@@ -281,6 +277,20 @@ schedule.every(1).minutes.do(authenticate)
 while True:
     schedule.run_pending()
     time.sleep(10)  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
