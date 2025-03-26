@@ -1,0 +1,28 @@
+{
+    "results": [
+        {
+            "id": "0fd92368-cf43-431b-a44e-ba773ed246fa",
+            "name": "VITHAL GARDEN",
+            "urlSlug": null,
+            "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
+            "defaultWarehouse": "2d9dd1ec-680f-4cbb-8793-c65cd7ff75bb",
+            "warehouses": [
+                "2d9dd1ec-680f-4cbb-8793-c65cd7ff75bb"
+            ],
+            "active": true,
+            "createdAt": "2024-11-15T16:32:52+01:00",
+            "partners": [],
+            "salesChannelId": "0fd92368-cf43-431b-a44e-ba773ed246fa",
+            "waitBeforeProcessing": false,
+            "editBeforeProcessing": false,
+            "integrationType": null,
+            "changedAt": "2025-03-20T11:16:00+01:00"
+        }
+    ],
+    "paging": {
+        "returned": 1,
+        "from": 0,
+        "to": 1,
+        "total": 1
+    }
+}

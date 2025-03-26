@@ -1,0 +1,40 @@
+{
+    "results": [
+        {
+            "id": "2d9dd1ec-680f-4cbb-8793-c65cd7ff75bb",
+            "name": "VITHALGARDENAVAILABLE",
+            "customId": "VITHALGARDENAVAILABLE",
+            "wmses": [
+                "a3de5778-809e-4fd3-bd22-ffd6db3476fd"
+            ],
+            "defaultWms": "a3de5778-809e-4fd3-bd22-ffd6db3476fd",
+            "createdAt": "2024-11-15T16:37:56+01:00",
+            "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
+            "dmg": false,
+            "type": null,
+            "scrapingWarehouse": null,
+            "changedAt": "2024-11-15T16:37:59+01:00"
+        },
+        {
+            "id": "5fa21d06-8ab5-4f76-b298-6aa701ea22b6",
+            "name": "VITHALGARDENSCRAPING",
+            "customId": "",
+            "wmses": [
+                "d7046cf8-652a-4403-8300-1a9c0b99a389"
+            ],
+            "defaultWms": "d7046cf8-652a-4403-8300-1a9c0b99a389",
+            "createdAt": "2025-02-18T11:45:57+01:00",
+            "organisation": "a0fc968c-ef63-4fbc-a686-0891bc607299",
+            "dmg": false,
+            "type": null,
+            "scrapingWarehouse": null,
+            "changedAt": "2025-02-18T11:46:04+01:00"
+        }
+    ],
+    "paging": {
+        "returned": 2,
+        "from": 0,
+        "to": 2,
+        "total": 2
+    }
+}
