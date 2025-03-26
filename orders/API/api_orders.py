@@ -163,6 +163,20 @@ def get_product_list(token):
         print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
         return []
 
+# Funzione per convertire una data in formato desiderato
+def format_date(date_str):
+    if isinstance(date_str, str) and date_str:
+        try:
+            # Converte la stringa in un oggetto datetime (gestisce anche il fuso orario)
+            date_obj = datetime.fromisoformat(date_str)
+            # Converte l'oggetto datetime nel formato desiderato (gg-mm-aaaa hh:mm:ss)
+            return date_obj.strftime('%d-%m-%Y %H:%M:%S')
+        except ValueError as e:
+            print(f"Errore nella conversione della data: {e}")
+            return None
+    else:
+        return None
+
 # Funzione per generare il CSV e caricarlo su SFTP
 def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list, product_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
@@ -182,7 +196,10 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
 
 # Cicla sulle spedizioni "delivered"
     for expedition in delivered_expeditions:
-         # Trova il movimento corrispondente alla spedizione
+        order_date_str = expedition.get('eshopOrderDate', '')
+        delivery_date_str = expedition.get('deliveredAt', '')
+        formatted_order_date = format_date(order_date_str)
+        formatted_delivery_date = format_date(delivery_date_str)
 
         # Trova il nome del corriere associato alla spedizione
         carrier_name = ""
@@ -194,12 +211,12 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
         # Scrivi una riga nel CSV
         new_row = {
             'Order Number': expedition.get('orderNumber', ''),
-            'Order Date': expedition.get('eshopOrderDate', ''),
+            'Order Date': formatted_order_date,
             'Carrier': carrier_name,
             'Status': expedition.get('status', ''),
             'Tracking Number': expedition.get('trackingNumber', ''),
             'Tracking Url': expedition.get('trackingUrl', ''),
-            'Delivery Date': expedition.get('deliveredAt', ''),
+            'Delivery Date': formatted_delivery_date,
             'Delivery Firstname': expedition.get('deliveryFirstName', ''),
             'Delivery Lastname': expedition.get('deliveryLastName', ''),
             'Delivery Street': expedition.get('deliveryStreet', ''),
@@ -214,8 +231,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, moviment_list
             'Piece Total': expedition.get('sumOfQuantity', ''),
             'Value': expedition.get('value', ''),
             'Currency': expedition.get('currency', ''),
-        }
-        
+        }      
         writer.writerow(new_row)
 
     csv_buffer.seek(0)

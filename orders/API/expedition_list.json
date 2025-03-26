@@ -18848,7 +18848,7 @@
             "externalTrackingNumber": "IT2871488791",
             "externalPackageNumber": "IT2871488791",
             "packagesCount": 1,
-            "status": "carrier_picked_up",
+            "status": "delivered",
             "expeditedCompletely": true,
             "value": 16.99,
             "currency": "EUR",
@@ -18865,7 +18865,7 @@
             "sumOfQuantity": 1,
             "packedAt": "2025-03-24T14:47:50+01:00",
             "sentAt": "2025-03-24T23:23:06+01:00",
-            "deliveredAt": null,
+            "deliveredAt": "2025-03-26T16:42:56+01:00",
             "waitBeforeProcessing": null,
             "editBeforeProcessing": null,
             "priority": null,
@@ -18884,7 +18884,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-24T23:23:12+01:00",
+            "changedAt": "2025-03-26T16:43:03+01:00",
             "withComplaint": false
         },
         {
@@ -19178,10 +19178,10 @@
             "deliveryCompany": null,
             "deliveryStreet": "Via del Santuario ",
             "deliveryHouseNr": "20",
-            "deliveryZip": "6065",
+            "deliveryZip": "06065",
             "deliveryCity": "Castel Rigone",
             "deliveryCountry": "IT",
-            "deliveryState": null,
+            "deliveryState": "PG",
             "deliveryEmail": "3jnjwy25kg058l1@marketplace.amazon.it",
             "deliveryPhone": "+39 758409214",
             "requiredExpeditionDate": "2025-03-24",
@@ -19232,7 +19232,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-24T17:42:16+01:00",
+            "changedAt": "2025-03-26T17:17:33+01:00",
             "withComplaint": false
         },
         {
@@ -19979,7 +19979,7 @@
             "externalTrackingNumber": "IT2871487330",
             "externalPackageNumber": "IT2871487330",
             "packagesCount": 1,
-            "status": "carrier_picked_up",
+            "status": "delivered",
             "expeditedCompletely": true,
             "value": 10.99,
             "currency": "EUR",
@@ -19996,7 +19996,7 @@
             "sumOfQuantity": 1,
             "packedAt": "2025-03-24T14:55:01+01:00",
             "sentAt": "2025-03-24T23:24:33+01:00",
-            "deliveredAt": null,
+            "deliveredAt": "2025-03-26T16:42:38+01:00",
             "waitBeforeProcessing": null,
             "editBeforeProcessing": null,
             "priority": null,
@@ -20015,7 +20015,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-24T23:24:47+01:00",
+            "changedAt": "2025-03-26T16:42:53+01:00",
             "withComplaint": false
         },
         {
@@ -23526,7 +23526,7 @@
             "deliveryLastName": "CAMPISI",
             "deliveryDegree": null,
             "deliveryCompany": null,
-            "deliveryStreet": "VIA DANTE ALIGHIERI",
+            "deliveryStreet": "VIA DANTE ALIGHIERI.",
             "deliveryHouseNr": "49",
             "deliveryZip": "90012",
             "deliveryCity": "CACCAMO",
@@ -23582,7 +23582,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-25T16:47:29+01:00",
+            "changedAt": "2025-03-26T17:26:50+01:00",
             "withComplaint": false
         },
         {
