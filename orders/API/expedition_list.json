@@ -24938,7 +24938,7 @@
             "externalTrackingNumber": "IT2873736673",
             "externalPackageNumber": "IT2873736673",
             "packagesCount": 1,
-            "status": "waiting_for_the_carrier",
+            "status": "carrier_picked_up",
             "expeditedCompletely": true,
             "value": 42,
             "currency": "EUR",
@@ -24954,7 +24954,7 @@
             "countOfSku": 1,
             "sumOfQuantity": 15,
             "packedAt": "2025-03-26T12:12:39+01:00",
-            "sentAt": null,
+            "sentAt": "2025-03-26T23:45:33+01:00",
             "deliveredAt": null,
             "waitBeforeProcessing": null,
             "editBeforeProcessing": null,
@@ -24974,7 +24974,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-26T12:12:46+01:00",
+            "changedAt": "2025-03-26T23:45:36+01:00",
             "withComplaint": false
         },
         {
@@ -26073,7 +26073,7 @@
             "externalTrackingNumber": "IT2873857808",
             "externalPackageNumber": "IT2873857808",
             "packagesCount": 1,
-            "status": "waiting_for_the_carrier",
+            "status": "carrier_picked_up",
             "expeditedCompletely": true,
             "value": 16.99,
             "currency": "EUR",
@@ -26089,7 +26089,7 @@
             "countOfSku": 1,
             "sumOfQuantity": 1,
             "packedAt": "2025-03-26T14:46:51+01:00",
-            "sentAt": null,
+            "sentAt": "2025-03-26T23:44:39+01:00",
             "deliveredAt": null,
             "waitBeforeProcessing": null,
             "editBeforeProcessing": null,
@@ -26111,7 +26111,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-26T14:46:57+01:00",
+            "changedAt": "2025-03-26T23:44:46+01:00",
             "withComplaint": false
         },
         {

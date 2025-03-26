@@ -221,7 +221,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, warehouse_lis
 # Cicla sulle spedizioni "delivered"
     for expedition in delivered_expeditions:
 
-        order_date_str = expedition.get('eshopOrderDate', '')
+        order_date_str = expedition.get('createdAt', '')
         formatted_order_date = format_date(order_date_str)
         delivery_date_str = expedition.get('deliveredAt', '')
         formatted_delivery_date = format_date(delivery_date_str)
