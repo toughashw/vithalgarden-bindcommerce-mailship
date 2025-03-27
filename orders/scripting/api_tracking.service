@@ -1,0 +1,13 @@
+[Unit]
+Description= API Tracking Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/vithalgarden-bindcommerce/tracking/API/api_tracking.py
+WorkingDirectory=/home/pi/vithalgarden-bindcommerce/tracking/API
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

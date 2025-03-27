@@ -80,7 +80,7 @@ def get_expedition_list(token):
         print("Scarico la lista spedizioni in formato JSON")
 
         # Salva la risposta JSON in un file
-        with open('expedition_list.json', 'w') as f:
+        with open('JSON/expedition_list.json', 'w') as f:
             json.dump(expedition_data, f, indent=4)
         print("Contenuto salvato in 'expedition_list.json'\n")
 
@@ -104,7 +104,7 @@ def get_carrier_list(token):
         print("Scarico la lista corrieri in formato JSON")
 
         # Salva la risposta JSON in un file
-        with open('carrier_list.json', 'w') as f:
+        with open('JSON/carrier_list.json', 'w') as f:
             json.dump(carrier_data, f, indent=4)
         print("Contenuto salvato in 'carrier_list.json'\n")
 
@@ -154,7 +154,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
         with sftp.open(remote_file_path, 'w') as remote_file:
             remote_file.write(csv_buffer.getvalue())
 
-        print(f"CSV salvato con successo con successo su SFTP: {remote_file_path}")
+        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
         print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
        
     except Exception as e:

@@ -1,0 +1,13 @@
+[Unit]
+Description= API Products Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/vithalgarden-bindcommerce/products/API/api_products.py
+WorkingDirectory=/home/pi/vithalgarden-bindcommerce/products/API
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

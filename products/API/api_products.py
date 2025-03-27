@@ -81,7 +81,7 @@ def get_product_list(token):
         print("Scarico la lista prodotti in formato JSON")
 
         # Salva la risposta JSON in un file
-        with open('product_list.json', 'w') as f:
+        with open('JSON/product_list.json', 'w') as f:
             json.dump(product_data, f, indent=4)
         print("Contenuto salvato in 'product_list.json'\n")
 
@@ -105,7 +105,7 @@ def get_product_stock(token):
         print("Scarico la lista disponibilità prodotti in formato JSON")
 
         # Salva la risposta JSON in un file
-        with open('stock_list.json', 'w') as f:
+        with open('JSON/stock_list.json', 'w') as f:
             json.dump(stock_data, f, indent=4)
         print("Contenuto salvato in 'stock_list.json'\n")
 

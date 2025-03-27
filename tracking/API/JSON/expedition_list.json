@@ -26603,7 +26603,7 @@
             "externalTrackingNumber": "IT2873965991",
             "externalPackageNumber": "IT2873965991",
             "packagesCount": 1,
-            "status": "waiting_for_the_carrier",
+            "status": "carrier_picked_up",
             "expeditedCompletely": true,
             "value": 20,
             "currency": "EUR",
@@ -26619,7 +26619,7 @@
             "countOfSku": 1,
             "sumOfQuantity": 1,
             "packedAt": "2025-03-26T16:19:31+01:00",
-            "sentAt": null,
+            "sentAt": "2025-03-27T01:47:44+01:00",
             "deliveredAt": null,
             "waitBeforeProcessing": null,
             "editBeforeProcessing": null,
@@ -26641,7 +26641,7 @@
             "deliveryCostCurrency": null,
             "invoiceNumber": null,
             "services": [],
-            "changedAt": "2025-03-26T16:19:38+01:00",
+            "changedAt": "2025-03-27T01:48:03+01:00",
             "withComplaint": false
         },
         {
