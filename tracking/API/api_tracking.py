@@ -128,7 +128,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list):
     for expedition in expedition_list:
         carrier_name = ""
         for carrier in carrier_list:
-            if carrier['id'] == expedition.get('carrier'):  
+            if carrier.get('id') == expedition.get('carrier'):  
                 carrier_name = carrier.get('name', '')
                 break
 
