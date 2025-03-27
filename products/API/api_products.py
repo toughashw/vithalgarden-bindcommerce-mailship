@@ -197,4 +197,4 @@ schedule.every(5).minutes.do(authenticate)
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(10)  
+    time.sleep(5)  

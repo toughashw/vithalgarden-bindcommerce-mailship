@@ -201,12 +201,103 @@ def format_date(date_str):
     else:
         return None
 
-# Funzione per generare il CSV e caricarlo su SFTP
+# Funzione per generare il CSV e caricarlo su SFTP (tutte le spedizioni)
 def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, warehouse_list, eshop_list, product_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
     remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/orders/export_orders_api_{timestamp}.csv'  
     
-    print("Genero il CSV aggiornato...")
+    print("Genero il CSV aggiornato di tutte le spedizioni...")
+    csv_buffer = StringIO()
+    fieldnames = ['Order Number', 'Order Date', 'Status', 'E-Shop', 'Warehouse', 'WMS', 'Carrier', 'Tracking Number', 'Tracking Url', 'Delivery Date', 'Delivery Firstname', 'Delivery Lastname', 
+                  'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery Email', 'Delivery Phone', 'Packages Count', 'SKU Total', 'Piece Total', 'Value', 'Currency']
+    
+    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
+
+    writer.writeheader()
+
+    # Cicla tutte le spedizioni
+    for expedition in expedition_list:
+
+        order_date_str = expedition.get('createdAt', '')
+        formatted_order_date = format_date(order_date_str)
+        delivery_date_str = expedition.get('deliveredAt', '')
+        formatted_delivery_date = format_date(delivery_date_str)
+
+        carrier_name = ""
+        for carrier in carrier_list:
+            if carrier.get('id') == expedition.get('carrier'):  
+                carrier_name = carrier.get('name', '')
+                break  
+
+        eshop_name = ""
+        for eshop in eshop_list:
+            if eshop.get('id') == expedition.get('eshop'):
+                eshop_name = eshop.get('name', '')
+                break
+
+        warehouse_name = ""
+        for warehouse in warehouse_list:
+            if warehouse.get('id') == expedition.get('warehouse'):
+                warehouse_name = warehouse.get('name', '')
+                break
+
+        new_row = {
+            'Order Number': expedition.get('orderNumber', ''),
+            'Order Date': formatted_order_date,
+            'Status': expedition.get('status', ''),
+            'E-Shop': eshop_name,
+            'Warehouse': warehouse_name, 
+            'WMS': warehouse_name, 
+            'Carrier': carrier_name,
+            'Tracking Number': expedition.get('trackingNumber', ''),
+            'Tracking Url': expedition.get('trackingUrl', ''),
+            'Delivery Date': formatted_delivery_date,
+            'Delivery Firstname': expedition.get('deliveryFirstName', ''),
+            'Delivery Lastname': expedition.get('deliveryLastName', ''),
+            'Delivery Street': expedition.get('deliveryStreet', ''),
+            'Delivery House nr': expedition.get('deliveryHouseNr', ''),
+            'Delivery Zip': expedition.get('deliveryZip', ''),
+            'Delivery City': expedition.get('deliveryCity', ''),
+            'Delivery Country': expedition.get('deliveryCountry', ''),
+            'Delivery Email': expedition.get('deliveryEmail', ''),
+            'Delivery Phone': expedition.get('deliveryPhone', ''), 
+            'Packages Count': expedition.get('packagesCount', ''),
+            'SKU Total': expedition.get('countOfSku', ''),
+            'Piece Total': expedition.get('sumOfQuantity', ''),
+            'Value': expedition.get('value', ''),
+            'Currency': expedition.get('currency', ''),
+        }      
+        writer.writerow(new_row)
+
+    csv_buffer.seek(0)
+
+    try:
+        # Connessione al server SFTP
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=sftp_username, password=sftp_password)
+        
+        # Crea il client SFTP
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        
+        # Scrive il CSV sul server SFTP
+        with sftp.open(remote_file_path, 'w') as remote_file:
+            remote_file.write(csv_buffer.getvalue())
+
+        print(f"CSV spedizioni caricato con successo su SFTP: {remote_file_path}")
+        print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
+
+    except Exception as e:
+        print(f"Errore durante il caricamento del file CSV su SFTP: {e}")
+    finally:
+        # Chiudi la connessione SFTP
+        transport.close()
+
+# Funzione per generare il CSV e caricarlo su SFTP (spedizioni consegnate)
+def generate_csv_and_upload_to_sftp_done(expedition_list, carrier_list, warehouse_list, eshop_list, product_list):
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
+    remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/orders/done/export_orders_api_{timestamp}_done.csv'  
+    
+    print("Genero il CSV aggiornato delle spedizioni consegnate...")
     csv_buffer = StringIO()
     fieldnames = ['Order Number', 'Order Date', 'Status', 'E-Shop', 'Warehouse', 'WMS', 'Carrier', 'Tracking Number', 'Tracking Url', 'Delivery Date', 'Delivery Firstname', 'Delivery Lastname', 
                   'Delivery Street', 'Delivery House nr', 'Delivery Zip', 'Delivery City', 'Delivery Country', 'Delivery Email', 'Delivery Phone', 'Packages Count', 'SKU Total', 'Piece Total', 'Value', 'Currency']
@@ -286,7 +377,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, warehouse_lis
         with sftp.open(remote_file_path, 'w') as remote_file:
             remote_file.write(csv_buffer.getvalue())
 
-        print(f"CSV caricato con successo su SFTP: {remote_file_path}")
+        print(f"CSV consegnate caricato con successo su SFTP: {remote_file_path}")
         print("Attendo 5 minuti prima di un nuovo aggiornamento....\n")
 
     except Exception as e:
@@ -294,7 +385,7 @@ def generate_csv_and_upload_to_sftp(expedition_list, carrier_list, warehouse_lis
     finally:
         # Chiudi la connessione SFTP
         transport.close()
-
+    
 # Funzione principale per gestire l'autenticazione e il refresh del token
 def authenticate():
     token, expires_in = login()
@@ -323,15 +414,16 @@ def authenticate():
 
                 if expedition_list and carrier_list and warehouse_list and eshop_list and product_list:
                     generate_csv_and_upload_to_sftp(expedition_list, carrier_list, warehouse_list, eshop_list, product_list)
+                    generate_csv_and_upload_to_sftp_done(expedition_list, carrier_list, warehouse_list, eshop_list, product_list)
                 break 
 
-# Schedulazione salvataggio CSV ogni 5 minuti
-schedule.every(5).minutes.do(authenticate)
+# Schedulazione salvataggio CSV ogni 60 minuti
+schedule.every(60).minutes.do(authenticate)
 
 # Loop per eseguire la schedulazione
 while True:
     schedule.run_pending()
-    time.sleep(10)  
+    time.sleep(5)  
 
 
 
