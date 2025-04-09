@@ -4,8 +4,8 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python3 /home/pi/vithalgarden-bindcommerce/orders/API/push_orders/api_push_mailship_orders.py
-WorkingDirectory=/home/pi/vithalgarden-bindcommerce/orders/API
+ExecStart=/usr/bin/python3 /home/pi/vithalgarden-bindcommerce/orders/push_orders/api_push_mailship_orders.py
+WorkingDirectory=/home/pi/vithalgarden-bindcommerce/orders/push_orders/
 Restart=always
 User=pi
 
