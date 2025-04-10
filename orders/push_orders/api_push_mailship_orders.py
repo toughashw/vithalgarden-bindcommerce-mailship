@@ -21,8 +21,11 @@ expedition_url = "https://app.mailship.eu/api/expedition"
 product_list_url = "https://app.mailship.eu/api/product/list"
 
 # MailShip Login Credentials
-email = "alessandrocarucci.ac@gmail.com"
-password = "Alex260981"
+email = "vithalgarden@deliverydaily.org"
+password = "APIcall2025!"
+
+#email = "alessandrocarucci.ac@gmail.com"
+#password = "Alex260981"
 
 # SFTP
 hostname = 'ws.italagro.bindcommerce.biz'
@@ -190,7 +193,14 @@ def authenticate_and_send_payload():
             for json_data in orders:
                 json_data = {k: ("" if pd.isna(v) else v) for k, v in json_data.items()}
                 row_barcode = str(json_data.get("Row_Barcode", "")).strip().lower()
-                product_id = next((p['id'] for p in product_list if row_barcode == str(p.get('productSku', '')).strip().lower()), None)
+                row_code = str(json_data.get("Row_Code", "")).strip().lower()
+
+                product_id = next((
+                    p['id'] for p in product_list
+                    if row_barcode == str(p.get('productSku', '')).strip().lower()
+                    or row_code == str(p.get('internalSku', '')).strip().lower()
+                ), None)
+
 
                 if not product_id:
                     print(f"⚠️  Prodotto non trovato per l'ordine {json_data.get('General_Number', 'Sconosciuto')} - SKU: {row_barcode}")
