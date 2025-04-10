@@ -253,10 +253,10 @@ def job():
     print(f"🕘 Avvio del job programmato alle {now.strftime('%H:%M')}\n")
     authenticate_and_send_payload()
 
-schedule.every(1).hours.do(job)
+schedule.every(30).minutes.do(job)
 
 print("⏳ Scheduling avviato. In ascolto per arrivo ordini ogni ora per 24h...\n")
 
 while True:
     schedule.run_pending()
-    time.sleep(5)
+    time.sleep(60)
