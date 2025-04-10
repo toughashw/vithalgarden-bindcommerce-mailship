@@ -16,8 +16,11 @@ product_list_url = "https://app.mailship.eu/api/product/list"
 stock_url = "https://app.mailship.eu/api/product-stock/list"  
 
 # Login Credentials
-email = "alessandrocarucci.ac@gmail.com"
-password = "Alex260981"  
+email = "vithalgarden@deliverydaily.org"
+password = "APIcall2025!"
+
+#email = "alessandrocarucci.ac@gmail.com"
+#password = "Alex260981"
 
 # SFTP 
 hostname = 'ws.italagro.bindcommerce.biz'
