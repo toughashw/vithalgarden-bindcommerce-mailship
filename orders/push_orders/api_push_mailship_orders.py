@@ -227,7 +227,7 @@ def authenticate_and_send_payload():
 
             if not product_id:
                 print(f"⚠️  Prodotto non trovato per l'ordine {json_data.get('General_Number', 'Sconosciuto')} - "
-                      f"SKU: {row_barcode or 'N/A'}, InternalSKU: {row_code or 'N/A'}")
+                      f"EAN: {row_barcode}, SKU: {row_code or 'N/A'}")
                 continue
 
             payload = {
