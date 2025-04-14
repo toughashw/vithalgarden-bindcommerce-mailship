@@ -41,10 +41,10 @@ os.makedirs(local_output_folder, exist_ok=True)
 os.makedirs(processed_folder, exist_ok=True)
 
 # Lettura CSV da SFTP
-csv_pattern = re.compile(r'ExportOrders_2-(\d{4}-\d{2}-\d{2})_\d+\.csv')
-today_str = datetime.now().strftime('%Y-%m-%d')
+#csv_pattern = re.compile(r'ExportOrders_2-(\d{4}-\d{2}-\d{2})_\d+\.csv')
+#today_str = datetime.now().strftime('%Y-%m-%d')
 
-# Connessione SFTP e Conversione CSV2JSON
+# Connessione SFTP | Ricerca CSV da elebaorare | Conversione CSV2JSON
 def sftp_download_and_convert():
     print("🔌 Connessione al server SFTP....\n")
     transport = paramiko.Transport((hostname, port))
@@ -53,6 +53,7 @@ def sftp_download_and_convert():
 
     print("📄 Scarico la lista dei CSV dalla directory /home/wsitalagro/webapps/ws-italagro/orders/ dell'SFTP...\n")
     file_list = sftp.listdir(remote_path)
+
     today_date = datetime.now().date()
     future_files = []
     for f in file_list:
@@ -67,6 +68,15 @@ def sftp_download_and_convert():
         sftp.close()
         transport.close()
         return False
+
+# Controllo CSV ieri, oggi e domani
+    #matching_files = [f for f in file_list if csv_pattern.match(f)]
+
+    #if not matching_files:
+        #print("⏸️ Nessun file CSV corrispondente trovato nella directory.")
+        #sftp.close()
+        #transport.close()
+        #return False
 
     processed_json_names = set(os.path.splitext(f)[0] for f in os.listdir(processed_folder))
     file_processed = False
@@ -98,7 +108,6 @@ def sftp_download_and_convert():
                 json_path = os.path.join(local_output_folder, json_filename)
                 with open(json_path, 'w', encoding='utf-8') as json_file:
                     json.dump(json_data, json_file, indent=2, ensure_ascii=False)
-
 
                 print(f"✅ Salvo ordini estratti in formato JSON: {json_filename}")
                 file_processed = True
@@ -179,6 +188,7 @@ def authenticate_and_send_payload():
     file_processed = sftp_download_and_convert()
     if not file_processed:
         print("✅ Nessun nuovo file da processare...\n")
+        return
 
     token, expires_in = login()
     if not token:
@@ -190,161 +200,123 @@ def authenticate_and_send_payload():
     expiry_time = time.time() + expires_in
 
     for filename in os.listdir(local_output_folder):
-        if not filename.endswith('.json'):
-            continue
+        if filename.endswith('.json'):
+            json_path = os.path.join(local_output_folder, filename)
+            with open(json_path, 'r', encoding='utf-8') as f:
+                orders = json.load(f)
 
-        json_path = os.path.join(local_output_folder, filename)
-        with open(json_path, 'r', encoding='utf-8') as f:
-            orders = json.load(f)
-
-        payloads = []
-        for json_data in orders:
+# Controllo Row_Barcode == Primary EAN && Row_Code == Internal SKU in Product List to get Product('id')
+            payloads = []
+            for json_data in orders:
             json_data = {k: ("" if pd.isna(v) else v) for k, v in json_data.items()}
+            row_barcode_raw = json_data.get("Row_Barcode", "")   
 
-            row_barcode_raw = json_data.get("Row_Barcode", "")
             if pd.notna(row_barcode_raw) and str(row_barcode_raw).strip() != "":
                 try:
                     row_barcode = str(int(float(row_barcode_raw))).strip().lower()
                 except ValueError:
                     row_barcode = str(row_barcode_raw).strip().lower()
             else:
-                row_barcode = ""
-
+            row_barcode = "" 
             row_code = str(json_data.get("Row_Code", "")).strip().lower()
             product_id = None
 
             if row_barcode:
                 product_id = next(
-                    (p['id'] for p in product_list if row_barcode == str(p.get('productSku', '')).strip().lower()),
+                    (
+                        p['id']
+                        for p in product_list
+                        if row_barcode == str(p.get('productSku', '')).strip().lower()
+                    ),
                     None
                 )
 
             if not product_id and row_code:
                 product_id = next(
-                    (p['id'] for p in product_list if row_code == str(p.get('internalSku', '')).strip().lower()),
+                    (
+                        p['id']
+                        for p in product_list
+                        if row_code == str(p.get('internalSku', '')).strip().lower()
+                    ),
                     None
                 )
 
             if not product_id:
-                print(f"⚠️  Prodotto non trovato per l'ordine {json_data.get('General_Number', 'Sconosciuto')} - "
-                      f"EAN: {row_barcode}, SKU: {row_code or 'N/A'}")
+                print(
+                    f"⚠️  Prodotto non trovato per l'ordine {json_data.get('General_Number', 'Sconosciuto')} - "
+                    f"Primary EAN: {row_barcode or 'N/A'}, InternalSKU: {row_code or 'N/A'}"
+                )   
                 continue
 
-            payload = {
-                "eshop": "0fd92368-cf43-431b-a44e-ba773ed246fa",
-                "warehouse": "2d9dd1ec-680f-4cbb-8793-c65cd7ff75bb",
-                "wms": "a3de5778-809e-4fd3-bd22-ffd6db3476fd",
-                "orderNumber": str(json_data.get("General_Number", "")),
-                "billingFirstName": json_data.get("Customer_Name", ""),
-                "billingLastName": json_data.get("Customer_Surname", ""),
-                "billingStreet": json_data.get("Customer_Address", ""),
-                "billingZip": str(json_data.get("Customer_Postcode", "")),
-                "billingCity": json_data.get("Customer_City", ""),
-                "billingCountry": json_data.get("Customer_CountryCode", ""),
-                "billingState": json_data.get("Customer_Province", ""),
-                "billingEmail": json_data.get("Customer_Email", ""),
-                "billingPhone": str(json_data.get("Customer_Phone", "")),
-                "carrier": "e6e83624-3d39-413d-a60e-ec8425c41b95",
-                "carrierService": "9c21c5df-464c-444b-841f-f3f7dec7d8e8",
-                "value": json_data.get("Amounts_Total", 0),
-                "currency": "EUR",
-                "items": [{
-                    "product": product_id,
-                    "quantity": json_data.get("Row_Qty", 0),
-                    "book": 0,
-                    "lifo": "false",
-                    "bookStockAdvices": []
-                }]
-            }
-            payloads.append(payload)
+# Controllo Row_Barcode == Primary EAN in Product List to get Product('id')
+            #payloads = []
+            #for json_data in orders:
+                #json_data = {k: ("" if pd.isna(v) else v) for k, v in json_data.items()}
+                #row_barcode = str(json_data.get("Row_Barcode", "")).strip().lower()
+                #product_id = next((p['id'] for p in product_list if row_barcode == str(p.get('productSku', '')).strip().lower()), None)
 
-        print(f"\n📦 Processo file: {filename} con {len(payloads)} payload...\n")
-        all_sent = True
+                #if not product_id:
+                    #print(f"⚠️  Prodotto non trovato per l'ordine {json_data.get('General_Number', 'Sconosciuto')} - SKU: {row_barcode}")
+                    #continue
 
-        for payload in payloads:
-            if time.time() >= expiry_time:
-                print("🔄 Token scaduto, rinnovo in corso...")
-                token, expires_in = refresh_token(token)
-                if not token:
-                    print("❌ Errore nel rinnovo del token.")
+                payload = {
+                    "eshop": "0fd92368-cf43-431b-a44e-ba773ed246fa",
+                    "warehouse": "2d9dd1ec-680f-4cbb-8793-c65cd7ff75bb",
+                    "wms": "a3de5778-809e-4fd3-bd22-ffd6db3476fd",
+                    "orderNumber": str(json_data.get("General_Number", "")),
+                    "billingFirstName": json_data.get("Customer_Name", ""),
+                    "billingLastName": json_data.get("Customer_Surname", ""),
+                    "billingStreet": json_data.get("Customer_Address", ""),
+                    "billingZip": str(json_data.get("Customer_Postcode", "")),
+                    "billingCity": json_data.get("Customer_City", ""),
+                    "billingCountry": json_data.get("Customer_CountryCode", ""),
+                    "billingState": json_data.get("Customer_Province", ""),
+                    "billingEmail": json_data.get("Customer_Email", ""),
+                    "billingPhone": str(json_data.get("Customer_Phone", "")),
+                    "carrier": "e6e83624-3d39-413d-a60e-ec8425c41b95",
+                    "carrierService": "9c21c5df-464c-444b-841f-f3f7dec7d8e8",
+                    "value": json_data.get("Amounts_Total", 0),
+                    "currency": "EUR",
+                    "items": [{
+                        "product": product_id,
+                        "quantity": json_data.get("Row_Qty", 0),
+                        "book": 0,
+                        "lifo": "false",
+                        "bookStockAdvices": []
+                    }]
+                }
+                payloads.append(payload)
+
+            print(f"\n📦 Processo file: {filename} con {len(payloads)} payload...\n")
+            all_sent = True
+
+            for payload in payloads:
+                if time.time() >= expiry_time:
+                    print("🔄 Token scaduto, rinnovo in corso...")
+                    token, expires_in = refresh_token(token)
+                    if not token:
+                        print("❌ Errore nel rinnovo del token.")
+                        all_sent = False
+                        break
+                    expiry_time = time.time() + expires_in
+                    print("🔑 Token rinnovato con successo!\n")
+
+                if not send_payload(payload, token):
                     all_sent = False
                     break
-                expiry_time = time.time() + expires_in
-                print("🔑 Token rinnovato con successo!\n")
+                time.sleep(5)
 
-            if not send_payload(payload, token):
-                print(f"🛑 Ordine fallito, lo salvo per retry: {payload['orderNumber']}")
-                skipped_folder = os.path.join(local_output_folder, "skipped")
-                os.makedirs(skipped_folder, exist_ok=True)
-
-                skipped_filename = filename.replace(".json", ".skipped.json")
-                skipped_path = os.path.join(skipped_folder, skipped_filename)
-
-                if os.path.exists(skipped_path):
-                    with open(skipped_path, 'r', encoding='utf-8') as f:
-                        existing_data = json.load(f)
-                else:
-                    existing_data = []
-
-                existing_data.append(payload)
-
-                with open(skipped_path, 'w', encoding='utf-8') as f:
-                    json.dump(existing_data, f, indent=2, ensure_ascii=False)
-
-                all_sent = False
-                break
-
-            time.sleep(5)
-
-        if all_sent:
-            dest_path = os.path.join(processed_folder, filename)
-            shutil.move(json_path, dest_path)
-            print(f"\n📁 Sposto file: {filename} nella cartella 'json_orders/processed'\n")
-
-    print("\n🔁 Avvio elaborazione ordini falliti precedenti...\n")
-    process_skipped_files(token, product_list)
-
-def process_skipped_files(token, product_list):
-    skipped_folder = os.path.join(local_output_folder, "skipped")
-    processed_folder = os.path.join(local_output_folder, "processed")
-    os.makedirs(processed_folder, exist_ok=True)
-
-    if not os.path.exists(skipped_folder):
-        return
-
-    for skipped_filename in os.listdir(skipped_folder):
-        if not skipped_filename.endswith(".skipped.json"):
-            continue
-
-        skipped_path = os.path.join(skipped_folder, skipped_filename)
-
-        with open(skipped_path, 'r', encoding='utf-8') as f:
-            skipped_orders = json.load(f)
-
-        print(f"\n🔁 Riprovo invio di {len(skipped_orders)} ordini da {skipped_filename}...\n")
-
-        still_failed = []
-        for payload in skipped_orders:
-            if not send_payload(payload, token):
-                still_failed.append(payload)
-            time.sleep(5)
-
-        if still_failed:
-            with open(skipped_path, 'w', encoding='utf-8') as f:
-                json.dump(still_failed, f, indent=2, ensure_ascii=False)
-            print(f"⚠️  Alcuni ordini non sono ancora andati. Rimangono in coda: {skipped_filename}")
-        else:
-            processed_filename = skipped_filename.replace(".skipped.json", ".json")
-            processed_path = os.path.join(processed_folder, processed_filename)
-            shutil.move(skipped_path, processed_path)
-            print(f"✅ Tutti gli ordini di {skipped_filename} sono stati inviati. File spostato in: {processed_path}")
+            if all_sent:
+                dest_path = os.path.join(processed_folder, filename)
+                shutil.move(json_path, dest_path)
+                print(f"\n📁 Sposto file: {filename} nella cartella 'json_orders/processed'\n")
 
 def job():
     now = datetime.now(ZoneInfo("Europe/Rome"))
     print(f"🕘 Avvio del job programmato alle {now.strftime('%H:%M')}\n")
     authenticate_and_send_payload()
 
-schedule.every(5).minutes.do(job)
+schedule.every(1).minutes.do(job)
 
 print("⏳ Scheduling avviato. In ascolto per arrivo ordini ogni ora per 24h...\n")
 
