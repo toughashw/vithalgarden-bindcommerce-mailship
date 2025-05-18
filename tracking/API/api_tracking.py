@@ -71,26 +71,49 @@ def refresh_token(refresh_token):
 # Funzione per fare una richiesta POST a /expedition/list e ottenere le spedizioni
 def get_expedition_list(token):
     headers = {
-        'Authorization': f'Bearer {token}',  
+        'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'
     }
-    
-    response = requests.post(expedition_list_url, headers=headers)
 
-    if response.status_code == 200:
-        # Ottieni la risposta JSON
-        expedition_data = response.json()
-        print("Scarico la lista spedizioni in formato JSON")
+    all_expeditions = []
+    offset = 0
+    limit = 1000
 
-        # Salva la risposta JSON in un file
-        with open('JSON/expedition_list.json', 'w') as f:
-            json.dump(expedition_data, f, indent=4)
-        print("Contenuto salvato in 'expedition_list.json'\n")
+    while True:
+        payload = {
+            "from": offset,
+            "limit": limit
+        }
 
-        return expedition_data.get('results', [])
-    else:
-        print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
-        return []
+        response = requests.post(expedition_list_url, headers=headers, json=payload)
+
+        if response.status_code != 200:
+            print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
+            break
+
+        data = response.json()
+        expeditions = data.get('results', [])
+        all_expeditions.extend(expeditions)
+
+        returned = data.get('paging', {}).get('returned', 0)
+        total = data.get('paging', {}).get('total', 0)
+
+        print(f"Scaricati {len(all_expeditions)}/{total} risultati...")
+
+        if offset + returned >= total:
+            break  # Tutto scaricato
+
+        offset += returned
+
+    # Crea la cartella JSON se non esiste
+    import os
+    os.makedirs('JSON', exist_ok=True)
+
+    with open('JSON/expedition_list.json', 'w') as f:
+        json.dump(all_expeditions, f, indent=4)
+
+    print("Tutte le spedizioni salvate in 'expedition_list.json'\n")
+    return all_expeditions
 
 # Funzione per fare una richiesta POST a /carrier/list e ottenere la lista dei corrieri
 def get_carrier_list(token):

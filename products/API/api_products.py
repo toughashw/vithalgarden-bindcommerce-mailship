@@ -72,50 +72,96 @@ def refresh_token(refresh_token):
 # Funzione per fare una richiesta POST a /product/list e ottenere i prodotti
 def get_product_list(token):
     headers = {
-        'Authorization': f'Bearer {token}',  
+        'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'
     }
-    
-    response = requests.post(product_list_url, headers=headers)
 
-    if response.status_code == 200:
-        # Ottieni la risposta JSON
-        product_data = response.json()
-        print("Scarico la lista prodotti in formato JSON")
+    all_products = []
+    offset = 0
+    limit = 1000
 
-        # Salva la risposta JSON in un file
-        with open('JSON/product_list.json', 'w') as f:
-            json.dump(product_data, f, indent=4)
-        print("Contenuto salvato in 'product_list.json'\n")
+    while True:
+        payload = {
+            "from": offset,
+            "limit": limit
+        }
 
-        return product_data.get('results', [])
-    else:
-        print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
-        return []
+        response = requests.post(product_list_url, headers=headers, json=payload)
+
+        if response.status_code != 200:
+            print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
+            break
+
+        data = response.json()
+        products = data.get('results', [])
+        all_products.extend(products)
+
+        returned = data.get('paging', {}).get('returned', 0)
+        total = data.get('paging', {}).get('total', 0)
+
+        print(f"Scaricati {len(all_products)}/{total} risultati...")
+
+        if offset + returned >= total:
+            break  # Tutto scaricato
+
+        offset += returned
+
+    # Crea la cartella JSON se non esiste
+    import os
+    os.makedirs('JSON', exist_ok=True)
+
+    with open('JSON/product_list.json', 'w') as f:
+        json.dump(all_products, f, indent=4)
+
+    print("Tutte le spedizioni salvate in 'product_list.json'\n")
+    return all_products
 
 # Funzione per fare una richiesta POST a /stock/list e ottenere ed ottenere quantità prodotti
-def get_product_stock(token):
+def get_stock_list(token):
     headers = {
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'
     }
 
-    response = requests.post(stock_url, headers=headers)
-    
-    if response.status_code == 200:
-        # Ottieni la risposta JSON
-        stock_data = response.json()
-        print("Scarico la lista disponibilità prodotti in formato JSON")
+    all_stocks = []
+    offset = 0
+    limit = 1000
 
-        # Salva la risposta JSON in un file
-        with open('JSON/stock_list.json', 'w') as f:
-            json.dump(stock_data, f, indent=4)
-        print("Contenuto salvato in 'stock_list.json'\n")
+    while True:
+        payload = {
+            "from": offset,
+            "limit": limit
+        }
 
-        return stock_data.get('results', [])
-    else:
+        response = requests.post(stock_list_url, headers=headers, json=payload)
+
+        if response.status_code != 200:
             print("Errore durante la richiesta a /stock/list:", response.status_code, response.text)
-            return []
+            break
+
+        data = response.json()
+        stocks = data.get('results', [])
+        all_stocks.extend(stocks)
+
+        returned = data.get('paging', {}).get('returned', 0)
+        total = data.get('paging', {}).get('total', 0)
+
+        print(f"Scaricati {len(all_stocks)}/{total} risultati...")
+
+        if offset + returned >= total:
+            break  # Tutto scaricato
+
+        offset += returned
+
+    # Crea la cartella JSON se non esiste
+    import os
+    os.makedirs('JSON', exist_ok=True)
+
+    with open('JSON/stock_list.json', 'w') as f:
+        json.dump(all_stocks, f, indent=4)
+
+    print("Tutte le spedizioni salvate in 'stock_list.json'\n")
+    return all_stocks
 
 # Funzione per generare il CSV e caricarlo su SFTP
 def generate_csv_and_upload_to_sftp(product_list, product_stock):
