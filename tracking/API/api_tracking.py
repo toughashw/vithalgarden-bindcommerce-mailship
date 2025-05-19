@@ -81,8 +81,8 @@ def get_expedition_list(token):
 
     while True:
         payload = {
-            "from": offset,
-            "limit": limit
+            "limit": limit,
+            "offset": offset
         }
 
         response = requests.post(expedition_list_url, headers=headers, json=payload)
@@ -91,28 +91,24 @@ def get_expedition_list(token):
             print("Errore durante la richiesta a /expedition/list:", response.status_code, response.text)
             break
 
-        data = response.json()
-        expeditions = data.get('results', [])
-        all_expeditions.extend(expeditions)
+        expedition_data = response.json()
+        results = expedition_data.get('results', [])
+        paging = expedition_data.get('paging', {})
 
-        returned = data.get('paging', {}).get('returned', 0)
-        total = data.get('paging', {}).get('total', 0)
+        all_expeditions.extend(results)
 
-        print(f"Scaricati {len(all_expeditions)}/{total} risultati...")
+        print(f"Scaricati {len(results)} risultati da offset {offset} su {paging.get('total')} totali")
+        print(f"Paging completo: {paging}")
 
-        if offset + returned >= total:
-            break  # Tutto scaricato
+        if offset + len(results) >= paging.get('total', 0):
+            break
 
-        offset += returned
-
-    # Crea la cartella JSON se non esiste
-    import os
-    os.makedirs('JSON', exist_ok=True)
+        offset += len(results)
 
     with open('JSON/expedition_list.json', 'w') as f:
         json.dump(all_expeditions, f, indent=4)
 
-    print("Tutte le spedizioni salvate in 'expedition_list.json'\n")
+    print("Tutti i dati salvati in 'expedition_list.json'\n")
     return all_expeditions
 
 # Funzione per fare una richiesta POST a /carrier/list e ottenere la lista dei corrieri

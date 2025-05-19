@@ -82,8 +82,8 @@ def get_product_list(token):
 
     while True:
         payload = {
-            "from": offset,
-            "limit": limit
+            "limit": limit,
+            "offset": offset
         }
 
         response = requests.post(product_list_url, headers=headers, json=payload)
@@ -92,28 +92,24 @@ def get_product_list(token):
             print("Errore durante la richiesta a /product/list:", response.status_code, response.text)
             break
 
-        data = response.json()
-        products = data.get('results', [])
-        all_products.extend(products)
+        product_data = response.json()
+        results = product_data.get('results', [])
+        paging = product_data.get('paging', {})
 
-        returned = data.get('paging', {}).get('returned', 0)
-        total = data.get('paging', {}).get('total', 0)
+        all_products.extend(results)
 
-        print(f"Scaricati {len(all_products)}/{total} risultati...")
+        print(f"Scaricati {len(results)} risultati da offset {offset} su {paging.get('total')} totali")
+        print(f"Paging completo: {paging}")
 
-        if offset + returned >= total:
-            break  # Tutto scaricato
+        if offset + len(results) >= paging.get('total', 0):
+            break
 
-        offset += returned
-
-    # Crea la cartella JSON se non esiste
-    import os
-    os.makedirs('JSON', exist_ok=True)
+        offset += len(results)
 
     with open('JSON/product_list.json', 'w') as f:
         json.dump(all_products, f, indent=4)
 
-    print("Tutte le spedizioni salvate in 'product_list.json'\n")
+    print("Tutti i dati salvati in 'product_list.json'\n")
     return all_products
 
 # Funzione per fare una richiesta POST a /stock/list e ottenere ed ottenere quantità prodotti
@@ -129,8 +125,8 @@ def get_stock_list(token):
 
     while True:
         payload = {
-            "from": offset,
-            "limit": limit
+            "limit": limit,
+            "offset": offset
         }
 
         response = requests.post(stock_list_url, headers=headers, json=payload)
@@ -139,28 +135,24 @@ def get_stock_list(token):
             print("Errore durante la richiesta a /stock/list:", response.status_code, response.text)
             break
 
-        data = response.json()
-        stocks = data.get('results', [])
-        all_stocks.extend(stocks)
+        stock_data = response.json()
+        results = stock_data.get('results', [])
+        paging = stock_data.get('paging', {})
 
-        returned = data.get('paging', {}).get('returned', 0)
-        total = data.get('paging', {}).get('total', 0)
+        all_stocks.extend(results)
 
-        print(f"Scaricati {len(all_stocks)}/{total} risultati...")
+        print(f"Scaricati {len(results)} risultati da offset {offset} su {paging.get('total')} totali")
+        print(f"Paging completo: {paging}")
 
-        if offset + returned >= total:
-            break  # Tutto scaricato
+        if offset + len(results) >= paging.get('total', 0):
+            break
 
-        offset += returned
-
-    # Crea la cartella JSON se non esiste
-    import os
-    os.makedirs('JSON', exist_ok=True)
+        offset += len(results)
 
     with open('JSON/stock_list.json', 'w') as f:
         json.dump(all_stocks, f, indent=4)
 
-    print("Tutte le spedizioni salvate in 'stock_list.json'\n")
+    print("Tutti i dati salvati in 'stock_list.json'\n")
     return all_stocks
 
 # Funzione per generare il CSV e caricarlo su SFTP
