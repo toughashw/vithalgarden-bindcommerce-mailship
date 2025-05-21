@@ -171,7 +171,7 @@ def generate_csv_and_upload_to_sftp(product_list, product_stock):
         product_quantity = 0  
         for stock in product_stock:
             if product.get('id') == stock.get('product'):
-                product_quantity = stock.get('quantity', 0) 
+                product_quantity = stock.get('available', 0) 
                 break  
 
         new_row = {

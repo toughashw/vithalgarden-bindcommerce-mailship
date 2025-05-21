@@ -262,7 +262,7 @@ def authenticate_and_send_payload():
                     "billingFirstName": json_data.get("Customer_Name", ""),
                     "billingLastName": json_data.get("Customer_Surname", ""),
                     "billingStreet": json_data.get("Customer_Address", ""),
-                    "billingZip": str(json_data.get("Customer_Postcode", "")),
+                    "billingZip": str(json_data.get("Customer_Postcode", "")).zfill(5),
                     "billingCity": json_data.get("Customer_City", ""),
                     "billingCountry": json_data.get("Customer_CountryCode", ""),
                     "billingState": json_data.get("Customer_Province", ""),
