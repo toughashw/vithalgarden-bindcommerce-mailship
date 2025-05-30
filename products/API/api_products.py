@@ -156,7 +156,7 @@ def get_stock_list(token):
     return all_stocks
 
 # Funzione per generare il CSV e caricarlo su SFTP
-def generate_csv_and_upload_to_sftp(product_list, product_stock):
+def generate_csv_and_upload_to_sftp(product_list, stock_list):
     timestamp = datetime.now().strftime('%d-%m-%Y_%H:%M:%S')  
     remote_file_path = f'/home/wsitalagro/webapps/ws-italagro/products/export_products_api_{timestamp}.csv'  
     
@@ -226,10 +226,10 @@ def authenticate():
             else:
 
                 product_list = get_product_list(token)
-                product_stock = get_product_stock(token)
+                stock_list = get_stock_list(token)
 
-                if product_list and product_stock:
-                    generate_csv_and_upload_to_sftp(product_list, product_stock)
+                if product_list and stock_list:
+                    generate_csv_and_upload_to_sftp(product_list, stock_list)
                 break 
 
 # Schedulazione salvataggio CSV ogni 5 minuti

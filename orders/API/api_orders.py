@@ -391,7 +391,7 @@ def generate_csv_and_upload_to_sftp_done(expedition_list, carrier_list, warehous
             'Delivery Lastname': expedition.get('deliveryLastName', ''),
             'Delivery Street': expedition.get('deliveryStreet', ''),
             'Delivery House nr': expedition.get('deliveryHouseNr', ''),
-            'Delivery Zip': expedition.get('deliveryZip', ''),
+            'Delivery Zip': str(expedition.get('deliveryZip', '')).zfill(5),
             'Delivery City': expedition.get('deliveryCity', ''),
             'Delivery Country': expedition.get('deliveryCountry', ''),
             'Delivery Email': expedition.get('deliveryEmail', ''),
