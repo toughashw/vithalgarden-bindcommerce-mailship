@@ -13,7 +13,7 @@ refresh_url = "https://app.mailship.eu/api/refresh-token"
 
 # API Call - Product & Stock
 product_list_url = "https://app.mailship.eu/api/product/list"  
-stock_url = "https://app.mailship.eu/api/product-stock/list"  
+stock_list_url = "https://app.mailship.eu/api/product-stock/list"  
 
 # Login Credentials
 email = "vithalgarden@deliverydaily.org"
@@ -169,7 +169,7 @@ def generate_csv_and_upload_to_sftp(product_list, stock_list):
 
     for product in product_list:
         product_quantity = 0  
-        for stock in product_stock:
+        for stock in stock_list:
             if product.get('id') == stock.get('product'):
                 product_quantity = stock.get('available', 0) 
                 break  
