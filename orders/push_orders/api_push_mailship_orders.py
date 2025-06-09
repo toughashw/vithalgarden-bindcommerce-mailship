@@ -67,18 +67,29 @@ def sftp_download_and_convert():
     date_pattern = re.compile(r'ExportOrders_2-(\d{4}-\d{2}-\d{2})_\d+\.csv')
     # Ottieni la data odierna
     today = datetime.now().date()
+    yesterday2 = today - timedelta(days=2)
+    yesterday3 = today - timedelta(days=3)
+    tomorrow = today + timedelta(days=1)
 
     # Filtra i file con data uguale o successiva a oggi
-    future_files = []
+    #future_files = []
+    #for f in file_list:
+        #match = date_pattern.match(f)
+        #if match:
+            #file_date_str = match.group(1)
+            #file_date = datetime.strptime(file_date_str, '%Y-%m-%d').date()
+            #if file_date >= today:
+                #future_files.append(f)
+                
     for f in file_list:
-        match = date_pattern.match(f)
-        if match:
-            file_date_str = match.group(1)
-            file_date = datetime.strptime(file_date_str, '%Y-%m-%d').date()
-            if file_date >= today:
-                future_files.append(f)
+         match = date_pattern.match(f)
+         if match:
+             file_date_str = match.group(1)
+             file_date = datetime.strptime(file_date_str, '%Y-%m-%d').date()
+             if file_date in [yesterday, yesterday2, yesterday3, today, tomorrow]:
+                matching_files.append(f)
 
-    if not future_files:
+    if not matching_files:
         print(f"⏸️ Nessun nuovo file CSV trovato per il giorno {today}.")
         sftp.close()
         transport.close()
@@ -87,7 +98,7 @@ def sftp_download_and_convert():
     processed_json_names = set(os.path.splitext(f)[0] for f in os.listdir(processed_folder))
     file_processed = False
 
-    for filename in future_files:
+    for filename in matching_files:
         filepath = remote_path + filename
         with sftp.open(filepath, 'r') as file_handle:
             csv_bytes = file_handle.read()
