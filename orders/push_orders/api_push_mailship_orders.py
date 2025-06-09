@@ -81,6 +81,7 @@ def sftp_download_and_convert():
             #if file_date >= today:
                 #future_files.append(f)
                 
+    matching_files = []           
     for f in file_list:
          match = date_pattern.match(f)
          if match:
