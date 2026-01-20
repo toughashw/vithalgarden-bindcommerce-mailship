@@ -9,7 +9,7 @@ import time
 import schedule
 import shutil
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 # API Call - Login & Token
@@ -67,6 +67,7 @@ def sftp_download_and_convert():
     date_pattern = re.compile(r'ExportOrders_2-(\d{4}-\d{2}-\d{2})_\d+\.csv')
     # Ottieni la data odierna
     today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
     yesterday2 = today - timedelta(days=2)
     yesterday3 = today - timedelta(days=3)
     tomorrow = today + timedelta(days=1)
